@@ -48,11 +48,14 @@ public class SteamLobbyManager : MonoBehaviour
     public void HostLobby()
     {
         isHost = true;
-        SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypeFriendsOnly, lobbyMaxPlayers);
+        SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypePublic, lobbyMaxPlayers);
     }
 
     public void JoinLobby()
     {
+        SteamMatchmaking.AddRequestLobbyListResultCountFilter(500);
+        SteamMatchmaking.AddRequestLobbyListDistanceFilter(ELobbyDistanceFilter.k_ELobbyDistanceFilterWorldwide);
+        SteamMatchmaking.AddRequestLobbyListStringFilter("lobby_name", "228", ELobbyComparison.k_ELobbyComparisonEqual);
         SteamMatchmaking.RequestLobbyList();
     }
 
@@ -66,20 +69,26 @@ public class SteamLobbyManager : MonoBehaviour
 
         var lobbyId = new CSteamID(callback.m_ulSteamIDLobby);
         SteamMatchmaking.SetLobbyData(lobbyId, "host_id", SteamUser.GetSteamID().ToString());
+        SteamMatchmaking.SetLobbyData(lobbyId, "lobby_name", "228");
         Debug.Log($"Lobby created. lobby id: {lobbyId}");
     }
 
     private void OnLobbyList(LobbyMatchList_t callback)
     {
-        if (callback.m_nLobbiesMatching == 0)
+        for (int i = 0; i < callback.m_nLobbiesMatching; i++)
         {
-            Debug.LogWarning("No lobbies found.");
-            return;
+            CSteamID lobbyId = SteamMatchmaking.GetLobbyByIndex(i);
+            string code = SteamMatchmaking.GetLobbyData(lobbyId, "lobby_name");
+            string host = SteamMatchmaking.GetLobbyData(lobbyId, "host_id");
+            Debug.LogError($"Lobby found. lobby name: {code}, host: {host}");
+            if (code == "228")
+            {
+                SteamMatchmaking.JoinLobby(lobbyId);
+                return;
+            }
         }
 
-        CSteamID lobbyID = SteamMatchmaking.GetLobbyByIndex(0);
-        Debug.LogError($"Lobby found. lobby id: {lobbyID}");
-        SteamMatchmaking.JoinLobby(lobbyID);
+        Debug.LogWarning("Lobby with code " + 228 + " not found.");
     }
 
     private void OnLobbyEntered(LobbyEnter_t callback)
@@ -110,7 +119,7 @@ public class SteamLobbyManager : MonoBehaviour
     {
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
-        Vector3 dir = new Vector3(h, 0, v);
+        Vector3 dir = new Vector3(h, v, 0);
         localCube.transform.position += dir * Time.deltaTime * 4f;
     }
 
