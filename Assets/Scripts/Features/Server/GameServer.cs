@@ -91,7 +91,7 @@ namespace Server
                 if (msg.m_identityPeer.Equals(_Host))
                 {
                     Debug.LogWarning("Server received host message via SteamNetworkingMessage");
-                    msg.Release();
+                    SteamNetworkingMessage_t.Release(messagePtrs[i]);
                     continue;
                 }
                 byte[] buffer = new byte[msg.m_cbSize];
@@ -100,7 +100,7 @@ namespace Server
                 var message = _MessageDataSerializer.Deserialize(messageContainer.MessageData, messageContainer.MessageId);
                 _MessageProcessor.ProcessMessage(message);
                 // Освободи память
-                msg.Release();
+                SteamNetworkingMessage_t.Release(messagePtrs[i]);
             }
         }
 

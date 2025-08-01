@@ -16,10 +16,11 @@ namespace Client
         private MessageProcessor _MessageProcessor;
         private object _UpdateTimer;
 
-        public RemoteGameServerProvider(ITimerProvider timerProvider, MessageDataSerializer messageDataSerializer)
+        public RemoteGameServerProvider(ITimerProvider timerProvider, MessageDataSerializer messageDataSerializer, MessageProcessor messageProcessor)
         {
             _TimerProvider = timerProvider;
             _MessageDataSerializer = messageDataSerializer;
+            _MessageProcessor = messageProcessor;
         }
 
         public void Load()
@@ -55,6 +56,7 @@ namespace Client
                 var message = _MessageDataSerializer.Deserialize(messageContainer.MessageData, messageContainer.MessageId);
                 _MessageProcessor.ProcessMessage(message);
                 // Освободи память
+                SteamNetworkingMessage_t.Release(messagePtrs[i]);
                 msg.Release();
             }
         }
