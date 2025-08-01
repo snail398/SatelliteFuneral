@@ -12,9 +12,10 @@ namespace Client
         private readonly LobbyData _LobbyData;
         private readonly MessageDataSerializer _MessageDataSerializer;
 
-        public RemoteMessageSender(LobbyData lobbyData)
+        public RemoteMessageSender(LobbyData lobbyData, MessageDataSerializer messageDataSerializer)
         {
             _LobbyData = lobbyData;
+            _MessageDataSerializer = messageDataSerializer;
         }
 
         public void SendMessage<T>(T messageData)
