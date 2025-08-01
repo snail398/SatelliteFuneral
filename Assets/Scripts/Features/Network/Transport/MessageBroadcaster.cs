@@ -43,7 +43,7 @@ namespace Network.Transport
                     {
                         fixed (byte* ptr = data)
                         {
-                            SteamNetworkingMessages.SendMessageToUser(ref receiver, (IntPtr)ptr, (uint)serializedMessage.Length, 0, 0);
+                            SteamNetworkingMessages.SendMessageToUser(ref receiver, (IntPtr)ptr, (uint)data.Length, 0, 0);
                         }
                     }
                 }
