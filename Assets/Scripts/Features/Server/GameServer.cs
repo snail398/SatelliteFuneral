@@ -62,7 +62,7 @@ namespace Server
             _Container.RegisterSingleton<MessageBroadcaster>().Resolve();
             _Container.RegisterInstance(_TimerProvider, typeof(ITimerProvider));
             
-            _UpdateTimer = _TimerProvider.CreateTimer(ListenForMessages, 1000, 1000);
+            _UpdateTimer = _TimerProvider.CreateTimer(ListenForMessages, 50, 50);
 
             _SessionRequest = Callback<SteamNetworkingMessagesSessionRequest_t>.Create(OnSessionRequest);
         }
