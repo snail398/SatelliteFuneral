@@ -13,10 +13,11 @@ namespace Network.Transport
         private readonly MessageDataSerializer _MessageDataSerializer;
         private readonly LocalGameServerProvider _LocalGameServerProvider;
 
-        public MessageBroadcaster(GameServer gameServer, LocalGameServerProvider localGameServerProvider)
+        public MessageBroadcaster(GameServer gameServer, LocalGameServerProvider localGameServerProvider, MessageDataSerializer messageDataSerializer)
         {
             _GameServer = gameServer;
             _LocalGameServerProvider = localGameServerProvider;
+            _MessageDataSerializer = messageDataSerializer;
         }
 
         public void BroadcastMessage(object messageData, List<SteamNetworkingIdentity> receivers)
