@@ -24,24 +24,33 @@ namespace Client
         {
             Debug.Log($"receive snapshot");
             //TODO: send message about receiving ??
-            foreach (var spawnSnapshot in snapshot.SpawnSnapshots)
+            if (snapshot == null)
+                return;
+            if (snapshot.SpawnSnapshots != null)
             {
-                if (spawnSnapshot.Spawned && !_SpawnedClients.ContainsKey(spawnSnapshot.SteamId))
+                foreach (var spawnSnapshot in snapshot.SpawnSnapshots)
                 {
-                    var player = Resources.Load<TestPlayerController>("Player");
-                    var inst = Object.Instantiate(player);
-                    var isLocal = spawnSnapshot.SteamId == SteamUser.GetSteamID().m_SteamID;
-                    inst.gameObject.name = $"Player::STEAMID::{spawnSnapshot.SteamId}::{(isLocal ? "Local" : "Remote")}";
-                    inst.Setup(_MessageSender, isLocal);
-                    _SpawnedClients.Add(spawnSnapshot.SteamId, inst);
+                    if (spawnSnapshot.Spawned && !_SpawnedClients.ContainsKey(spawnSnapshot.SteamId))
+                    {
+                        var player = Resources.Load<TestPlayerController>("Player");
+                        var inst = Object.Instantiate(player);
+                        var isLocal = spawnSnapshot.SteamId == SteamUser.GetSteamID().m_SteamID;
+                        inst.gameObject.name = $"Player::STEAMID::{spawnSnapshot.SteamId}::{(isLocal ? "Local" : "Remote")}";
+                        inst.Setup(_MessageSender, isLocal);
+                        _SpawnedClients.Add(spawnSnapshot.SteamId, inst);
+                    }
                 }
             }
 
-            foreach (var positionSnapshot in snapshot.PositionSnapshots)
+            if (snapshot.PositionSnapshots != null)
             {
-                if (positionSnapshot.SteamId != SteamUser.GetSteamID().m_SteamID)
+                foreach (var positionSnapshot in snapshot.PositionSnapshots)
                 {
-                    _SpawnedClients[positionSnapshot.SteamId].transform.position = new Vector3(positionSnapshot.X, positionSnapshot.Y, positionSnapshot.Z);
+                    if (positionSnapshot.SteamId != SteamUser.GetSteamID().m_SteamID)
+                    {
+                        _SpawnedClients[positionSnapshot.SteamId].transform.position = new Vector3(positionSnapshot.X,
+                            positionSnapshot.Y, positionSnapshot.Z);
+                    }
                 }
             }
         }
