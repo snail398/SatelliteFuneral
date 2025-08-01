@@ -5,6 +5,7 @@ using Client;
 using DependencyInjection;
 using Network.Lobby;
 using Network.Transport;
+using Server.Position;
 using Shared;
 using Steamworks;
 using UnityEngine;
@@ -115,6 +116,7 @@ namespace Server
         {
             _Container.RegisterSingleton<SynchronizationService>().Resolve();
             _Container.RegisterSingleton<SpawnService>().RegisterInstanceInterfaces();
+            _Container.RegisterSingleton<PositionService>().RegisterInstanceInterfaces();
             //TODO: add here gameplay server features
         }
         private void OnUserLeft(CSteamID steamID)

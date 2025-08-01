@@ -37,7 +37,6 @@ namespace CompositionRoot
             await lobbyServer.WaitForEnterLobby();
             
             CompositionRoot.Container.RegisterSingleton<MessageProcessor>().Resolve();
-            CompositionRoot.Container.RegisterSingleton<SynchronizationService>().Resolve();
             CompositionRoot.Container.RegisterSingleton<MessageDataSerializer>().Resolve();
             if (_GameHostingType == GameHostingType.Host)
             {
@@ -56,7 +55,7 @@ namespace CompositionRoot
                 CompositionRoot.Container.RegisterSingleton<IMessageSender, RemoteMessageSender>().ResolveAndLoad();
             }
             
-            
+            CompositionRoot.Container.RegisterSingleton<SynchronizationService>().Resolve();
             CompositionRoot.Container.RegisterSingleton<SpawnService>().ResolveAndLoad();
             
             Debug.LogError("After Load context");

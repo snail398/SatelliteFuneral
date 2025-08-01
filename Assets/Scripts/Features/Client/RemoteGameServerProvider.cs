@@ -25,7 +25,7 @@ namespace Client
 
         public void Load()
         {
-            _UpdateTimer = _TimerProvider.CreateTimer(ListenForMessages, 1000, 1000);
+            _UpdateTimer = _TimerProvider.CreateTimer(ListenForMessages, 50, 50);
             Callback<SteamNetworkingMessagesSessionRequest_t>.Create(OnSessionRequest);
         }
         
@@ -57,7 +57,6 @@ namespace Client
                 _MessageProcessor.ProcessMessage(message);
                 // Освободи память
                 SteamNetworkingMessage_t.Release(messagePtrs[i]);
-                msg.Release();
             }
         }
 

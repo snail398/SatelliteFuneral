@@ -41,7 +41,7 @@ namespace Server
             _Container = container;
             _GameServer = gameServer;
             _MessageBroadcaster = messageBroadcaster;
-            _UpdateTimer = _TimerProvider.CreateTimer(IterateSnapshots, 1000, 1000);
+            _UpdateTimer = _TimerProvider.CreateTimer(IterateSnapshots, 50, 50);
 
         }
 
