@@ -2,6 +2,7 @@
 
 namespace Network.Transport
 {
+    [GameMessage]
     [ProtoContract]
     public class SpawnMessage
     {

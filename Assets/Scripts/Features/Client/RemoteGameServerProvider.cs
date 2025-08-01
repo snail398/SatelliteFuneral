@@ -25,7 +25,13 @@ namespace Client
         public void Load()
         {
             _UpdateTimer = _TimerProvider.CreateTimer(ListenForMessages, 1000, 1000);
-            
+            Callback<SteamNetworkingMessagesSessionRequest_t>.Create(OnSessionRequest);
+        }
+        
+        private void OnSessionRequest(SteamNetworkingMessagesSessionRequest_t param)
+        {
+            Debug.LogError($"Accept Session With Server: {param.m_identityRemote.GetSteamID().m_SteamID}");
+            SteamNetworkingMessages.AcceptSessionWithUser(ref param.m_identityRemote);
         }
 
         private void ListenForMessages()

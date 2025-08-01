@@ -29,6 +29,7 @@ namespace Server
 
         public List<SteamNetworkingIdentity> ConnectedUsers => _ConnectedUsers;
         public SteamNetworkingIdentity Host => _Host;
+        protected Callback<SteamNetworkingMessagesSessionRequest_t> _SessionRequest;
 
         public GameServer(GameLobbyServer gameLobbyServer, ITimerProvider timerProvider, LocalGameServerProvider localGameServerProvider)
         {
@@ -62,6 +63,13 @@ namespace Server
             
             _UpdateTimer = _TimerProvider.CreateTimer(ListenForMessages, 1000, 1000);
 
+            _SessionRequest = Callback<SteamNetworkingMessagesSessionRequest_t>.Create(OnSessionRequest);
+        }
+
+        private void OnSessionRequest(SteamNetworkingMessagesSessionRequest_t param)
+        {
+            Debug.LogError($"AcceptSessionWithUser: {param.m_identityRemote.GetSteamID().m_SteamID}");
+            SteamNetworkingMessages.AcceptSessionWithUser(ref param.m_identityRemote);
         }
 
         private void ListenForMessages()
