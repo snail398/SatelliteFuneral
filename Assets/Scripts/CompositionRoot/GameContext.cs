@@ -2,6 +2,7 @@
 using Client;
 using Network.Lobby;
 using Network.Transport;
+using Shared;
 using Steamworks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -37,6 +38,7 @@ namespace CompositionRoot
             
             CompositionRoot.Container.RegisterSingleton<MessageProcessor>().Resolve();
             CompositionRoot.Container.RegisterSingleton<SynchronizationService>().Resolve();
+            CompositionRoot.Container.RegisterSingleton<MessageDataSerializer>().Resolve();
             if (_GameHostingType == GameHostingType.Host)
             {
                 CompositionRoot.Container.RegisterSingleton<LocalGameServerProvider>().ResolveAndLoad();
