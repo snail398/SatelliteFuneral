@@ -19,7 +19,7 @@ public class TestPlayerController : MonoBehaviour
     public void SetPosition(Vector3 targetPosition, uint receivedServerTick)
     {
         _PreviousTargetPosition = _TargetPosition;
-        _PreviousReceivedServerTick = receivedServerTick;
+        _PreviousReceivedServerTick = _ReceivedServerTick;
         
         _TargetPosition = targetPosition;
         _ReceivedServerTick = receivedServerTick;
