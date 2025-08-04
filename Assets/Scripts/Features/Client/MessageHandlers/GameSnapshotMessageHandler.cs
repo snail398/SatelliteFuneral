@@ -13,7 +13,7 @@ namespace Client.MessageHandlers
 
         protected override void MessageReceived(GameSnapshotMessage message, ulong steamId)
         {
-            _SynchronizationService.ReceiveSnapshot(message.GameSnapshot);
+            _SynchronizationService.ReceiveSnapshot(message.GameSnapshot, message.ServerTick);
         }
     }
 }

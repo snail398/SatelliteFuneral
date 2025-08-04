@@ -6,15 +6,11 @@ namespace Shared
 {
     [GameMessage]
     [ProtoContract]
-    public class GameSnapshot
+    public class GameSnapshot   
     {
-        [ProtoMember(1)] 
-        public uint ServerTick;
-        [ProtoMember(2)] 
-        public uint LastHandledInput;
-        [ProtoMember(3)]
+        [ProtoMember(1)]
         public List<SpawnSnapshot> SpawnSnapshots;
-        [ProtoMember(4)]
+        [ProtoMember(2)]
         public List<PositionSnapshot> PositionSnapshots;
     }
 }

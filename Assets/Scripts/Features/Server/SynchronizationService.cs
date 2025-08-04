@@ -49,16 +49,13 @@ namespace Server
         public void BroadcastSnapshots(uint serverTick)
         {
             Debug.Log("Iterating snapshots");
-            SaveCurrentStateToSnapshot(serverTick);
-            SendCurrentSnapshotToPlayers();
+            SaveCurrentStateToSnapshot();
+            SendCurrentSnapshotToPlayers(serverTick);
         }
 
-        private void SaveCurrentStateToSnapshot(uint serverTick)
+        private void SaveCurrentStateToSnapshot()
         {
-            var snapshot = new GameSnapshot()
-            {
-                ServerTick = serverTick,
-            };
+            var snapshot = new GameSnapshot() { };
             
             _FieldsCacheProvider.Get(typeof(GameSnapshot)).ForEach(_ => {
                 var providerType = typeof(ISnapshotDataProvider<>).MakeGenericType(_.FieldType);
@@ -82,7 +79,7 @@ namespace Server
             }
         }
 
-        private void SendCurrentSnapshotToPlayers()
+        private void SendCurrentSnapshotToPlayers(uint serverTick)
         {
             foreach (var player in _GameServer.ConnectedUsers)
             {
@@ -90,17 +87,16 @@ namespace Server
                 GameSnapshot diff;
                 if (!lastReceivedSnapshotId.HasValue || !_Snapshots.ContainsKey(lastReceivedSnapshotId.Value)) {
                     diff = _Snapshots[_CurrentSnapshotId];
-                    diff.LastHandledInput = _InputService.GetLastHandledInput(player);
                 }
                 else
                 {
                     diff = GetDiff(_Snapshots[lastReceivedSnapshotId.Value], _Snapshots[_CurrentSnapshotId], out var changed) as GameSnapshot;
                 }
-                BroadcastDiff(diff, player, lastReceivedSnapshotId);
+                BroadcastDiff(diff, player, serverTick, 0);
             }
         }
 
-        private void BroadcastDiff(GameSnapshot diff, SteamNetworkingIdentity playerId, int? lastReceivedSnapshotId)
+        private void BroadcastDiff(GameSnapshot diff, SteamNetworkingIdentity playerId, uint serverTick, uint lastHandlerSnapshot)
         {
             var message = new GameSnapshotMessage()
             {

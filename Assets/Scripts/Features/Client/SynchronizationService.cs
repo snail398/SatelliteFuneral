@@ -22,14 +22,14 @@ namespace Client
         
         void ILoadableService.Load() { }
 
-        public void ReceiveSnapshot(GameSnapshot snapshot)
+        public void ReceiveSnapshot(GameSnapshot snapshot, uint serverTick)
         {
             Debug.Log($"receive snapshot");
             //TODO: send message about receiving ??
             if (snapshot == null)
                 return;
 
-            _ServerProvider.SetCurrentTick(snapshot.ServerTick);
+            _ServerProvider.SetCurrentTick(serverTick);
             if (snapshot.SpawnSnapshots != null)
             {
                 foreach (var spawnSnapshot in snapshot.SpawnSnapshots)
@@ -52,7 +52,7 @@ namespace Client
                 {
                     if (positionSnapshot.SteamId != SteamUser.GetSteamID().m_SteamID)
                     {
-                        _SpawnedClients[positionSnapshot.SteamId].SetPosition(new Vector3(positionSnapshot.X, positionSnapshot.Y, positionSnapshot.Z), snapshot.ServerTick);
+                        _SpawnedClients[positionSnapshot.SteamId].SetPosition(new Vector3(positionSnapshot.X, positionSnapshot.Y, positionSnapshot.Z), serverTick);
                     }
                 }
             }
