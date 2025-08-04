@@ -85,7 +85,6 @@ namespace Server
         private void UpdateInternal()
         {
             _CurrentTimestamp = Environment.TickCount;
-            Debug.LogError($"GAMESERVER::UpdateInternal: Current timestamp: {_CurrentTimestamp} server tick : {_ServerTick} calc: {_CurrentTimestamp / 50}");
         }
 
         private void UpdateServer()
@@ -96,6 +95,7 @@ namespace Server
             // SimulatePhysics(fixedDeltaTime);
             _SynchronizationService.BroadcastSnapshots(_CurrentTimestamp);
             _ServerTick++;
+            // Debug.LogError($"GAMESERVER::UpdateInternal: Current timestamp: {_CurrentTimestamp} server tick : {_ServerTick} calc: {_CurrentTimestamp / 50}");
             // _CurrentTimestamp = _ServerTick * ServerTickRateMs;
         }
 

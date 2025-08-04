@@ -78,13 +78,16 @@ public class TestPlayerController : MonoBehaviour
             var endIndex = 1;
             for (int i = 0; i < _PositionQueue.Count - 1; i++)
             {
-                if (simulationTimestamp > _PositionQueue[i + 1].Item2 * 50)
+                if (simulationTimestamp > _PositionQueue[i + 1].Item2)
                 {
                     _PositionQueue.RemoveAt(i);
                     i--;
                 }
             }
             
+            if (_PositionQueue.Count < 2)
+                return;
+            Debug.LogError(_PositionQueue.Count);
             var start = _PositionQueue[startIndex];
             var end = _PositionQueue[endIndex];
             int previousTimestamp = start.Item2;
