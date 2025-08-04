@@ -45,7 +45,7 @@ namespace Client
 
         public void Load()
         {
-            _UpdateTimer = _TimerProvider.CreateTimer(ListenForMessages, 50, 50);
+            _UpdateTimer = _TimerProvider.CreateTimer(ListenForMessages, 20, 20);
             _Callback = Callback<SteamNetworkingMessagesSessionRequest_t>.Create(OnSessionRequest);
         }
         

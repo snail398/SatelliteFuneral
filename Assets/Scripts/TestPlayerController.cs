@@ -75,9 +75,9 @@ public class TestPlayerController : MonoBehaviour
                 uint previousTimestamp = _PreviousReceivedServerTick * 50;
                 uint targetTimestamp = _ReceivedServerTick * 50;
                 var delta = targetTimestamp - previousTimestamp;
-                var simulationTimestamp = _ServerProvider.CurrentTimestamp - delta;
+                var simulationTimestamp = _ServerProvider.CurrentTimestamp;
 
-                float frac = (simulationTimestamp - previousTimestamp) / (targetTimestamp - previousTimestamp);
+                float frac = (float)(simulationTimestamp - previousTimestamp) / (float)(targetTimestamp - previousTimestamp);
                 transform.position = math.lerp(_PreviousTargetPosition, _TargetPosition, frac);
             }
         }
