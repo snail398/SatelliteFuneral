@@ -71,35 +71,28 @@ public class TestPlayerController : MonoBehaviour
         }
         else
         {
-            if (_PreviousTargetPosition.Equals(Vector3.zero))
+            uint offset = 2000;
+            var simulationTimestamp = _ServerProvider.CurrentTimestamp - offset;
+            if (_PositionQueue.Count < 2)
+                return;
+            var startIndex = 0;
+            var endIndex = 1;
+            for (int i = 0; i < _PositionQueue.Count - 1; i++)
             {
-                transform.position = _TargetPosition;
-            }
-            else
-            {
-                uint offset = 2000;
-                var simulationTimestamp = _ServerProvider.CurrentTimestamp - offset;
-                if (_PositionQueue.Count < 2)
-                    return;
-                var startIndex = 0;
-                var endIndex = 1;
-                for (int i = 0; i < _PositionQueue.Count - 1; i++)
+                if (simulationTimestamp > _PositionQueue[i + 1].Item2 * 50)
                 {
-                    if (simulationTimestamp > _PositionQueue[i + 1].Item2 * 50)
-                    {
-                        _PositionQueue.RemoveAt(i);
-                        i--;
-                    }
+                    _PositionQueue.RemoveAt(i);
+                    i--;
                 }
-                
-                var start = _PositionQueue[startIndex];
-                var end = _PositionQueue[endIndex];
-                uint previousTimestamp = start.Item2 * 50;
-                uint targetTimestamp = end.Item2 * 50;
-
-                float frac = (float)(simulationTimestamp - previousTimestamp) / (float)(targetTimestamp - previousTimestamp);
-                transform.position = math.lerp(_PreviousTargetPosition, _TargetPosition, math.saturate(frac));
             }
+            
+            var start = _PositionQueue[startIndex];
+            var end = _PositionQueue[endIndex];
+            uint previousTimestamp = start.Item2 * 50;
+            uint targetTimestamp = end.Item2 * 50;
+
+            float frac = (float)(simulationTimestamp - previousTimestamp) / (float)(targetTimestamp - previousTimestamp);
+            transform.position = math.lerp(_PreviousTargetPosition, _TargetPosition, math.saturate(frac));
         }
     }
 }
