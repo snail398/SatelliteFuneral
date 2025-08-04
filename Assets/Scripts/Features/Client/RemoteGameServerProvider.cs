@@ -17,7 +17,7 @@ namespace Client
         private UnityEventProvider _UnityEventProvider;
         private object _UpdateTimer;
         
-        private uint _ServerTick;
+        private uint _ServerTick =700000;
         private uint _CurrentTimestamp;
         private Callback<SteamNetworkingMessagesSessionRequest_t> _Callback;
 
@@ -25,7 +25,8 @@ namespace Client
         
         public void SetCurrentTick(uint serverTick)
         {
-            _CurrentTimestamp = _ServerTick * 50;
+            if (_ServerTick == 700000)
+                _CurrentTimestamp = _ServerTick * 50;
             _ServerTick = serverTick;
         }
 

@@ -95,7 +95,7 @@ namespace Server
             // SimulatePhysics(fixedDeltaTime);
             _SynchronizationService.BroadcastSnapshots(_ServerTick);
             _ServerTick++;
-            _CurrentTimestamp = _ServerTick * ServerTickRateMs;
+            // _CurrentTimestamp = _ServerTick * ServerTickRateMs;
         }
 
         private void OnSessionRequest(SteamNetworkingMessagesSessionRequest_t param)

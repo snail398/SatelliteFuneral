@@ -71,7 +71,7 @@ public class TestPlayerController : MonoBehaviour
         }
         else
         {
-            uint offset = 2000;
+            uint offset = 200;
             var simulationTimestamp = _ServerProvider.CurrentTimestamp - offset;
             if (_PositionQueue.Count < 2)
                 return;
