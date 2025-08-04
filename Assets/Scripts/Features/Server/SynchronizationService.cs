@@ -48,9 +48,9 @@ namespace Server
 
         public void BroadcastSnapshots(uint serverTick)
         {
-            // Debug.Log("Iterating snapshots");
-            // SaveCurrentStateToSnapshot();
-            // SendCurrentSnapshotToPlayers(serverTick);
+            Debug.Log("Iterating snapshots");
+            SaveCurrentStateToSnapshot();
+            SendCurrentSnapshotToPlayers(serverTick);
         }
 
         private void SaveCurrentStateToSnapshot()
@@ -81,7 +81,7 @@ namespace Server
 
         private void SendCurrentSnapshotToPlayers(uint serverTick)
         {
-            foreach (var player in _GameServer.ConnectedUsers)
+            foreach (var player in _GameServer.PlayerInGame)
             {
                 _LastReceivedPlayerSnapshot.TryGetValue(player.GetSteamID().m_SteamID, out var lastReceivedSnapshotId);
                 GameSnapshot diff;

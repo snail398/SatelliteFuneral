@@ -37,12 +37,7 @@ namespace Server.Spawn
         {
             _GameServer = gameServer;
             _SignalBus = signalBus;
-
-            var alreadyConnectedUsers = _GameServer.ConnectedUsers;
-            foreach (var connectedUser in alreadyConnectedUsers)
-            {
-                AddPlayerSpawnState(connectedUser.GetSteamID());
-            }
+            
             _SignalBus.Subscribe<PlayerConnectedSignal>(OnPlayerConnected, this);
         }
         
@@ -50,14 +45,14 @@ namespace Server.Spawn
         
         private void OnPlayerConnected(PlayerConnectedSignal signal)
         {
-            AddPlayerSpawnState(signal.CSteamID);
+            // AddPlayerSpawnState(signal.CSteamID);
         }
 
-        private void AddPlayerSpawnState(CSteamID steamID)
+        private void AddPlayerSpawnState(ulong steamID)
         {
             var spawnState = new SpawnState()
             {
-                SteamId = steamID.m_SteamID,
+                SteamId = steamID,
                 Spawned = false,
             };
             _SpawnStates.Add(spawnState);
@@ -65,6 +60,7 @@ namespace Server.Spawn
 
         public void SpawnPlayer(ulong playerId)
         {
+            AddPlayerSpawnState(playerId);
             Debug.Log($"Trying to spawn player {playerId}");
             var state = _SpawnStates.FirstOrDefault(_ => _.SteamId == playerId);
             if (state == null)

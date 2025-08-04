@@ -5,9 +5,12 @@ namespace Server.MessageHandlers
 {
     public class WelcomeMessageHandler : MessageHandler<WelcomeMessage>
     {
+        private readonly GameServer _GameServer;
+        
         protected override void MessageReceived(WelcomeMessage message, ulong steamId)
         {
             Debug.LogError($"server received a welcome message: {message} from {steamId}");
+            _GameServer.Welcome(steamId);
         }
     }
 }

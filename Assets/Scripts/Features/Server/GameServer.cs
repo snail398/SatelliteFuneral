@@ -24,7 +24,7 @@ namespace Server
         private readonly ITimerProvider _TimerProvider;
         private readonly LocalGameServerProvider _LocalGameServerProvider;
         
-        private List<SteamNetworkingIdentity> _ConnectedUsers = new List<SteamNetworkingIdentity>();
+        private Dictionary<ulong, SteamNetworkingIdentity> _ConnectedUsers = new Dictionary<ulong, SteamNetworkingIdentity>();
         private SteamNetworkingIdentity _Host;
         private Container _Container;
         private SignalBus _SignalBus;
@@ -40,7 +40,8 @@ namespace Server
         private SynchronizationService _SynchronizationService;
         private InputService _InputService;
 
-        public List<SteamNetworkingIdentity> ConnectedUsers => _ConnectedUsers;
+        private List<SteamNetworkingIdentity> _PlayerInGame = new List<SteamNetworkingIdentity>();
+        public List<SteamNetworkingIdentity> PlayerInGame => _PlayerInGame;
         public SteamNetworkingIdentity Host => _Host;
         protected Callback<SteamNetworkingMessagesSessionRequest_t> _SessionRequest;
 
@@ -56,7 +57,7 @@ namespace Server
                 Debug.Log($"GAMESERVER::user already in lobby: {userInLobby}");
                 var networkIdentity = new SteamNetworkingIdentity();
                 networkIdentity.SetSteamID(userInLobby);
-                _ConnectedUsers.Add(networkIdentity);
+                _ConnectedUsers.Add(userInLobby.m_SteamID, networkIdentity);
             }
             
             _GameLobbyServer.OnUserJoin += OnUserJoin;
@@ -139,7 +140,15 @@ namespace Server
         {
             _Host = new SteamNetworkingIdentity();
             _Host.SetSteamID(host);
+            _PlayerInGame.Add(_Host);
             CreateAndRegisterServices();
+        }
+
+        public void Welcome(ulong id)
+        {
+            var identity = new SteamNetworkingIdentity();
+            identity.SetSteamID64(id);
+            _PlayerInGame.Add(identity);
         }
         
         private void CreateAndRegisterServices()
@@ -154,15 +163,8 @@ namespace Server
         {
             Debug.Log($"GAMESERVER::user left: {steamID}");
 
-            for (int i = 0; i < _ConnectedUsers.Count; i++)
-            {
-                if (_ConnectedUsers[i].GetSteamID() == steamID)
-                {
-                    _ConnectedUsers.RemoveAt(i);
-                    _SignalBus.FireSignal(new PlayerLeftSignal(steamID));
-                    break;
-                }
-            }
+            _ConnectedUsers.Remove(steamID.m_SteamID);
+            _SignalBus.FireSignal(new PlayerLeftSignal(steamID));
         }
 
         private void OnUserJoin(CSteamID steamID)
@@ -170,7 +172,7 @@ namespace Server
             Debug.Log($"GAMESERVER::user joined: {steamID}");
             var networkIdentity = new SteamNetworkingIdentity();
             networkIdentity.SetSteamID(steamID);
-            _ConnectedUsers.Add(networkIdentity);           
+            _ConnectedUsers.Add(steamID.m_SteamID, networkIdentity);           
             _SignalBus.FireSignal(new PlayerConnectedSignal(steamID));
 
         }
