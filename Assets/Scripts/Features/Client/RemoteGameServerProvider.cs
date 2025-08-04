@@ -33,13 +33,16 @@ namespace Client
             {
                 _Stopwatch = Stopwatch.StartNew();
             
-                _SyncDelta = _CurrentTimestamp;
+                _SyncDelta = serverTimestamp;
                 _CurrentTimestamp = serverTimestamp;
+                _Synced = true;
             }
         }
 
         private void UpdateInternal()
         {
+            if (!_Synced)
+                return;
             _CurrentTimestamp = _Stopwatch.ElapsedMilliseconds + _SyncDelta;
         }
 
