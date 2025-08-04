@@ -78,7 +78,7 @@ public class TestPlayerController : MonoBehaviour
                 var simulationTimestamp = _ServerProvider.CurrentTimestamp;
 
                 float frac = (float)(simulationTimestamp - previousTimestamp) / (float)(targetTimestamp - previousTimestamp);
-                transform.position = math.lerp(_PreviousTargetPosition, _TargetPosition, frac);
+                transform.position = math.lerp(_PreviousTargetPosition, _TargetPosition, math.saturate(frac));
             }
         }
     }
