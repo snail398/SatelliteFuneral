@@ -19,7 +19,8 @@ namespace Client
         
         private uint _ServerTick;
         private uint _CurrentTimestamp;
-        
+        private Callback<SteamNetworkingMessagesSessionRequest_t> _Callback;
+
         public uint CurrentTimestamp => _CurrentTimestamp;
         
         public void SetCurrentTick(uint serverTick)
@@ -45,7 +46,7 @@ namespace Client
         public void Load()
         {
             _UpdateTimer = _TimerProvider.CreateTimer(ListenForMessages, 50, 50);
-            Callback<SteamNetworkingMessagesSessionRequest_t>.Create(OnSessionRequest);
+            _Callback = Callback<SteamNetworkingMessagesSessionRequest_t>.Create(OnSessionRequest);
         }
         
         private void OnSessionRequest(SteamNetworkingMessagesSessionRequest_t param)

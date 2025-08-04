@@ -54,6 +54,12 @@ namespace CompositionRoot
             {
                 CompositionRoot.Container.RegisterSingleton<IServerProvider, RemoteGameServerProvider>().ResolveAndLoad();
                 CompositionRoot.Container.RegisterSingleton<IMessageSender, RemoteMessageSender>().ResolveAndLoad();
+                
+                var messageSender = CompositionRoot.Container.Resolve<IMessageSender>();
+                messageSender.SendMessage(new WelcomeMessage()
+                {
+                    Data = 1,
+                });
             }
             
             CompositionRoot.Container.RegisterSingleton<SynchronizationService>().Resolve();

@@ -48,9 +48,9 @@ namespace Server
 
         public void BroadcastSnapshots(uint serverTick)
         {
-            Debug.Log("Iterating snapshots");
-            SaveCurrentStateToSnapshot();
-            SendCurrentSnapshotToPlayers(serverTick);
+            // Debug.Log("Iterating snapshots");
+            // SaveCurrentStateToSnapshot();
+            // SendCurrentSnapshotToPlayers(serverTick);
         }
 
         private void SaveCurrentStateToSnapshot()
