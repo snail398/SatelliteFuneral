@@ -33,9 +33,9 @@ namespace Server
         private UnityEventProvider _UnityEventProvider;
         private object _UpdateTimer;
         private uint _ServerTick;
-        private uint _CurrentTimestamp;
+        private int _CurrentTimestamp;
         
-        public uint CurrentTimestamp => _CurrentTimestamp;
+        public int CurrentTimestamp => _CurrentTimestamp;
         
         private SynchronizationService _SynchronizationService;
         private InputService _InputService;
@@ -84,7 +84,8 @@ namespace Server
 
         private void UpdateInternal()
         {
-            _CurrentTimestamp += (uint)(Time.deltaTime * 1000);
+            _CurrentTimestamp = Environment.TickCount;
+            Debug.LogError($"GAMESERVER::UpdateInternal: Current timestamp: {_CurrentTimestamp} server tick : {_ServerTick} calc: {_CurrentTimestamp / 50}");
         }
 
         private void UpdateServer()
@@ -93,7 +94,7 @@ namespace Server
             _InputService.ProcessInput();
             // ProcessInputs();
             // SimulatePhysics(fixedDeltaTime);
-            _SynchronizationService.BroadcastSnapshots(_ServerTick);
+            _SynchronizationService.BroadcastSnapshots(_CurrentTimestamp);
             _ServerTick++;
             // _CurrentTimestamp = _ServerTick * ServerTickRateMs;
         }

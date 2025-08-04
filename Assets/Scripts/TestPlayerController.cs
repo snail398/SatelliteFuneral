@@ -18,12 +18,11 @@ public class TestPlayerController : MonoBehaviour
     private Vector3 _TargetPosition;
     public uint _ReceivedServerTick;
     
-    private List<(Vector3, uint)> _PositionQueue = new List<(Vector3, uint)>();
+    private List<(Vector3, int)> _PositionQueue = new List<(Vector3, int)>();
 
-    public void SetPosition(Vector3 targetPosition, uint receivedServerTick)
+    public void SetPosition(Vector3 targetPosition, int serverTimestamp)
     {
-        _PositionQueue.Add((targetPosition, receivedServerTick));
-        
+        _PositionQueue.Add((targetPosition, serverTimestamp));
         // _PreviousTargetPosition = _TargetPosition;
         // _PreviousReceivedServerTick = _ReceivedServerTick;
         
@@ -88,8 +87,8 @@ public class TestPlayerController : MonoBehaviour
             
             var start = _PositionQueue[startIndex];
             var end = _PositionQueue[endIndex];
-            uint previousTimestamp = start.Item2 * 50;
-            uint targetTimestamp = end.Item2 * 50;
+            int previousTimestamp = start.Item2;
+            int targetTimestamp = end.Item2;
 
             float frac = (float)(simulationTimestamp - previousTimestamp) / (float)(targetTimestamp - previousTimestamp);
             transform.position = math.lerp(start.Item1, end.Item1, math.saturate(frac));

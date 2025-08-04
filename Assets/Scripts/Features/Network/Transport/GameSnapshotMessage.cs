@@ -10,7 +10,7 @@ namespace Network.Transport
         [ProtoMember(1)]
         public GameSnapshot GameSnapshot { get; set; }
         [ProtoMember(2)] 
-        public uint ServerTick;
+        public int ServerTimestamp;
         [ProtoMember(3)] 
         public uint LastHandledInput;
     }

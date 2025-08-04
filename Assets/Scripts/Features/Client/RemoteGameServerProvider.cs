@@ -17,17 +17,22 @@ namespace Client
         private UnityEventProvider _UnityEventProvider;
         private object _UpdateTimer;
         
-        private uint _ServerTick =700000;
-        private uint _CurrentTimestamp;
+        private int _CurrentTimestamp;
         private Callback<SteamNetworkingMessagesSessionRequest_t> _Callback;
 
-        public uint CurrentTimestamp => _CurrentTimestamp;
+        public int CurrentTimestamp => _CurrentTimestamp;
+
+        private int _SyncDelta;
         
-        public void SetCurrentTick(uint serverTick)
+        public void SetCurrentTick(int serverTimestamp)
         {
-            if (_ServerTick == 700000)
-                _CurrentTimestamp = _ServerTick * 50;
-            _ServerTick = serverTick;
+            _CurrentTimestamp = serverTimestamp;
+            _SyncDelta = Environment.TickCount - _CurrentTimestamp;
+        }
+
+        private void UpdateInternal()
+        {
+            _CurrentTimestamp = Environment.TickCount + _SyncDelta;
         }
 
         public RemoteGameServerProvider(ITimerProvider timerProvider, MessageDataSerializer messageDataSerializer, MessageProcessor messageProcessor, UnityEventProvider unityEventProvider)
@@ -37,11 +42,6 @@ namespace Client
             _MessageProcessor = messageProcessor;
             _UnityEventProvider = unityEventProvider;
             _UnityEventProvider.OnUpdate += UpdateInternal;
-        }
-
-        private void UpdateInternal()
-        {
-            _CurrentTimestamp += (uint)(Time.deltaTime * 1000);
         }
 
         public void Load()
