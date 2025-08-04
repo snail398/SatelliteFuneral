@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Client;
 using Network.Transport;
 using Steamworks;
@@ -16,14 +17,18 @@ public class TestPlayerController : MonoBehaviour
     
     private Vector3 _TargetPosition;
     public uint _ReceivedServerTick;
+    
+    private List<(Vector3, uint)> _PositionQueue = new List<(Vector3, uint)>();
 
     public void SetPosition(Vector3 targetPosition, uint receivedServerTick)
     {
-        _PreviousTargetPosition = _TargetPosition;
-        _PreviousReceivedServerTick = _ReceivedServerTick;
+        _PositionQueue.Add((targetPosition, receivedServerTick));
         
-        _TargetPosition = targetPosition;
-        _ReceivedServerTick = receivedServerTick;
+        // _PreviousTargetPosition = _TargetPosition;
+        // _PreviousReceivedServerTick = _ReceivedServerTick;
+        
+        // _TargetPosition = targetPosition;
+        // _ReceivedServerTick = receivedServerTick;
     }
     
     public void Setup(IMessageSender messageSender, bool isLocal, IServerProvider serverProvider)
@@ -72,10 +77,25 @@ public class TestPlayerController : MonoBehaviour
             }
             else
             {
-                uint previousTimestamp = _PreviousReceivedServerTick * 50;
-                uint targetTimestamp = _ReceivedServerTick * 50;
-                var delta = targetTimestamp - previousTimestamp;
-                var simulationTimestamp = _ServerProvider.CurrentTimestamp;
+                uint offset = 2000;
+                var simulationTimestamp = _ServerProvider.CurrentTimestamp - offset;
+                if (_PositionQueue.Count < 2)
+                    return;
+                var startIndex = 0;
+                var endIndex = 1;
+                for (int i = 0; i < _PositionQueue.Count - 1; i++)
+                {
+                    if (simulationTimestamp > _PositionQueue[i + 1].Item2 * 50)
+                    {
+                        _PositionQueue.RemoveAt(i);
+                        i--;
+                    }
+                }
+                
+                var start = _PositionQueue[startIndex];
+                var end = _PositionQueue[endIndex];
+                uint previousTimestamp = start.Item2 * 50;
+                uint targetTimestamp = end.Item2 * 50;
 
                 float frac = (float)(simulationTimestamp - previousTimestamp) / (float)(targetTimestamp - previousTimestamp);
                 transform.position = math.lerp(_PreviousTargetPosition, _TargetPosition, math.saturate(frac));
