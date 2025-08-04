@@ -22,7 +22,7 @@ namespace Client
         
         void ILoadableService.Load() { }
 
-        public void ReceiveSnapshot(GameSnapshot snapshot, int serverTimestamp)
+        public void ReceiveSnapshot(GameSnapshot snapshot, long serverTimestamp)
         {
             Debug.Log($"receive snapshot");
             //TODO: send message about receiving ??

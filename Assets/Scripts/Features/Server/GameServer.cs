@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Client;
 using DependencyInjection;
@@ -9,8 +10,8 @@ using Server.Input;
 using Server.Position;
 using Shared;
 using Steamworks;
-using UnityEngine;
 using Utils;
+using Debug = UnityEngine.Debug;
 using InputService = Server.Input.InputService;
 using SpawnService = Server.Spawn.SpawnService;
 
@@ -33,9 +34,9 @@ namespace Server
         private UnityEventProvider _UnityEventProvider;
         private object _UpdateTimer;
         private uint _ServerTick;
-        private int _CurrentTimestamp;
+        private long _CurrentTimestamp;
         
-        public int CurrentTimestamp => _CurrentTimestamp;
+        public long CurrentTimestamp => _CurrentTimestamp;
         
         private SynchronizationService _SynchronizationService;
         private InputService _InputService;
@@ -45,6 +46,8 @@ namespace Server
         public SteamNetworkingIdentity Host => _Host;
         protected Callback<SteamNetworkingMessagesSessionRequest_t> _SessionRequest;
 
+        private Stopwatch _Stopwatch; 
+        
         public GameServer(GameLobbyServer gameLobbyServer, ITimerProvider timerProvider, LocalGameServerProvider localGameServerProvider, UnityEventProvider unityEventProvider)
         {
             //TODO its not nessessary to have game lobby server neer GameServer
@@ -84,7 +87,8 @@ namespace Server
 
         private void UpdateInternal()
         {
-            _CurrentTimestamp = Environment.TickCount;
+            _CurrentTimestamp = _Stopwatch.ElapsedMilliseconds;
+            Debug.LogError($"GAMESERVER::UpdateInternal {_CurrentTimestamp}");
         }
 
         private void UpdateServer()
@@ -139,6 +143,7 @@ namespace Server
 
         public void CreateGame(CSteamID host)
         {
+            _Stopwatch = Stopwatch.StartNew();
             _Host = new SteamNetworkingIdentity();
             _Host.SetSteamID(host);
             _PlayerInGame.Add(_Host);

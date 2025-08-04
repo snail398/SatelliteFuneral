@@ -7,8 +7,8 @@ namespace Client
     {
         private readonly MessageProcessor _MessageProcessor;
         private GameServer _GameServer;
-        public int CurrentTimestamp => _GameServer.CurrentTimestamp;
-        public void SetCurrentTick(int serverTick) { }
+        public long CurrentTimestamp => _GameServer.CurrentTimestamp;
+        public void SetCurrentTick(long serverTick) { }
 
         public LocalGameServerProvider(MessageProcessor messageProcessor)
         {

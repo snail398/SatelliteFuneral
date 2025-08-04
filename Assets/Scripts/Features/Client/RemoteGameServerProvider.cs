@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using DependencyInjection;
 using Network.Transport;
 using Shared;
 using Steamworks;
-using UnityEngine;
 using Utils;
+using Debug = UnityEngine.Debug;
 
 namespace Client
 {
@@ -17,22 +18,29 @@ namespace Client
         private UnityEventProvider _UnityEventProvider;
         private object _UpdateTimer;
         
-        private int _CurrentTimestamp;
+        private long _CurrentTimestamp;
         private Callback<SteamNetworkingMessagesSessionRequest_t> _Callback;
 
-        public int CurrentTimestamp => _CurrentTimestamp;
+        public long CurrentTimestamp => _CurrentTimestamp;
 
-        private int _SyncDelta;
+        private long _SyncDelta;
+        private bool _Synced;
+        private Stopwatch _Stopwatch;
         
-        public void SetCurrentTick(int serverTimestamp)
+        public void SetCurrentTick(long serverTimestamp)
         {
-            _CurrentTimestamp = serverTimestamp;
-            _SyncDelta = Environment.TickCount - _CurrentTimestamp;
+            if (!_Synced)
+            {
+                _Stopwatch = Stopwatch.StartNew();
+            
+                _SyncDelta = _CurrentTimestamp;
+                _CurrentTimestamp = serverTimestamp;
+            }
         }
 
         private void UpdateInternal()
         {
-            _CurrentTimestamp = Environment.TickCount + _SyncDelta;
+            _CurrentTimestamp = _Stopwatch.ElapsedMilliseconds + _SyncDelta;
         }
 
         public RemoteGameServerProvider(ITimerProvider timerProvider, MessageDataSerializer messageDataSerializer, MessageProcessor messageProcessor, UnityEventProvider unityEventProvider)

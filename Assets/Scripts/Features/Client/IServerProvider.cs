@@ -2,7 +2,7 @@
 {
     public interface IServerProvider
     {
-        public int CurrentTimestamp { get; }
-        void SetCurrentTick(int serverTick);
+        public long CurrentTimestamp { get; }
+        void SetCurrentTick(long serverTick);
     }
 }

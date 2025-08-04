@@ -46,7 +46,7 @@ namespace Server
             _InputService = inputService;
         }
 
-        public void BroadcastSnapshots(int serverTimestamp)
+        public void BroadcastSnapshots(long serverTimestamp)
         {
             Debug.Log("Iterating snapshots");
             SaveCurrentStateToSnapshot();
@@ -79,7 +79,7 @@ namespace Server
             }
         }
 
-        private void SendCurrentSnapshotToPlayers(int serverTimestamp)
+        private void SendCurrentSnapshotToPlayers(long serverTimestamp)
         {
             foreach (var player in _GameServer.PlayerInGame)
             {
@@ -96,7 +96,7 @@ namespace Server
             }
         }
 
-        private void BroadcastDiff(GameSnapshot diff, SteamNetworkingIdentity playerId, int serverTimestamp, uint lastHandlerSnapshot)
+        private void BroadcastDiff(GameSnapshot diff, SteamNetworkingIdentity playerId, long serverTimestamp, uint lastHandlerSnapshot)
         {
             var message = new GameSnapshotMessage()
             {

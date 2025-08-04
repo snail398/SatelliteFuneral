@@ -18,9 +18,9 @@ public class TestPlayerController : MonoBehaviour
     private Vector3 _TargetPosition;
     public uint _ReceivedServerTick;
     
-    private List<(Vector3, int)> _PositionQueue = new List<(Vector3, int)>();
+    private List<(Vector3, long)> _PositionQueue = new List<(Vector3, long)>();
 
-    public void SetPosition(Vector3 targetPosition, int serverTimestamp)
+    public void SetPosition(Vector3 targetPosition, long serverTimestamp)
     {
         _PositionQueue.Add((targetPosition, serverTimestamp));
         // _PreviousTargetPosition = _TargetPosition;
@@ -66,7 +66,11 @@ public class TestPlayerController : MonoBehaviour
             Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
 
             // Перемещаем трансформ
+            var previous = transform.position;
+
             transform.position += direction * moveSpeed * Time.deltaTime;
+            var delta = math.length(transform.position - previous);
+            Debug.LogError($"Local: {delta}");
         }
         else
         {
@@ -87,14 +91,16 @@ public class TestPlayerController : MonoBehaviour
             
             if (_PositionQueue.Count < 2)
                 return;
-            Debug.LogError(_PositionQueue.Count);
             var start = _PositionQueue[startIndex];
             var end = _PositionQueue[endIndex];
-            int previousTimestamp = start.Item2;
-            int targetTimestamp = end.Item2;
+            long previousTimestamp = start.Item2;
+            long targetTimestamp = end.Item2;
 
             float frac = (float)(simulationTimestamp - previousTimestamp) / (float)(targetTimestamp - previousTimestamp);
+            var previous = transform.position;
             transform.position = math.lerp(start.Item1, end.Item1, math.saturate(frac));
+            var delta = math.length(transform.position - previous);
+            Debug.LogError($"REMOTE: {delta} frac: {frac} previous: {previousTimestamp} target: {targetTimestamp} cur:{ _ServerProvider.CurrentTimestamp}");
         }
     }
 }
