@@ -101,6 +101,8 @@ namespace Server
             var message = new GameSnapshotMessage()
             {
                 GameSnapshot = diff,
+                ServerTick = serverTick,
+                LastHandledInput = lastHandlerSnapshot,
             };
             _MessageBroadcaster.BroadcastMessage(message, new List<SteamNetworkingIdentity>(){playerId});
         }

@@ -1,3 +1,4 @@
+using System;
 using Client;
 using Network.Transport;
 using Steamworks;
@@ -35,6 +36,20 @@ public class TestPlayerController : MonoBehaviour
     public float moveSpeed = 5f;
     private bool _IsLocal;
 
+    private void FixedUpdate()
+    {
+        if (_IsLocal)
+        {
+            _MessageSender.SendMessage(new PositionMessage()
+            {
+                X = transform.position.x,
+                Y = transform.position.y,
+                Z = transform.position.z,
+                SteamId = SteamUser.GetSteamID().m_SteamID,
+            });
+        }
+    }
+
     void Update()
     {
         if (_IsLocal)
@@ -48,13 +63,6 @@ public class TestPlayerController : MonoBehaviour
 
             // Перемещаем трансформ
             transform.position += direction * moveSpeed * Time.deltaTime;
-            _MessageSender.SendMessage(new PositionMessage()
-            {
-                X = transform.position.x,
-                Y = transform.position.y,
-                Z = transform.position.z,
-                SteamId = SteamUser.GetSteamID().m_SteamID,
-            });  
         }
         else
         {
