@@ -12,7 +12,7 @@ namespace Server.MessageHandlers
             _SpawnService = spawnService;
         }
 
-        protected override void MessageReceived(SpawnMessage message)
+        protected override void MessageReceived(SpawnMessage message, ulong steamId)
         {
             _SpawnService.SpawnPlayer(message.PlayerId);
         }

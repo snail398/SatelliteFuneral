@@ -9,13 +9,15 @@ namespace Client
     public class SynchronizationService : ILoadableService, IUnloadableService
     {
         private readonly IMessageSender _MessageSender;
+        private readonly IServerProvider _ServerProvider;
         
 
         private Dictionary<ulong, TestPlayerController> _SpawnedClients = new Dictionary<ulong, TestPlayerController>();
 
-        public SynchronizationService(IMessageSender messageSender)
+        public SynchronizationService(IMessageSender messageSender, IServerProvider serverProvider)
         {
             _MessageSender = messageSender;
+            _ServerProvider = serverProvider;
         }
         
         void ILoadableService.Load() { }
@@ -26,6 +28,8 @@ namespace Client
             //TODO: send message about receiving ??
             if (snapshot == null)
                 return;
+
+            _ServerProvider.SetCurrentTick(snapshot.ServerTick);
             if (snapshot.SpawnSnapshots != null)
             {
                 foreach (var spawnSnapshot in snapshot.SpawnSnapshots)
@@ -36,7 +40,7 @@ namespace Client
                         var inst = Object.Instantiate(player);
                         var isLocal = spawnSnapshot.SteamId == SteamUser.GetSteamID().m_SteamID;
                         inst.gameObject.name = $"Player::STEAMID::{spawnSnapshot.SteamId}::{(isLocal ? "Local" : "Remote")}";
-                        inst.Setup(_MessageSender, isLocal);
+                        inst.Setup(_MessageSender, isLocal, _ServerProvider);
                         _SpawnedClients.Add(spawnSnapshot.SteamId, inst);
                     }
                 }
@@ -48,8 +52,7 @@ namespace Client
                 {
                     if (positionSnapshot.SteamId != SteamUser.GetSteamID().m_SteamID)
                     {
-                        _SpawnedClients[positionSnapshot.SteamId].transform.position = new Vector3(positionSnapshot.X,
-                            positionSnapshot.Y, positionSnapshot.Z);
+                        _SpawnedClients[positionSnapshot.SteamId].SetPosition(new Vector3(positionSnapshot.X, positionSnapshot.Y, positionSnapshot.Z), snapshot.ServerTick);
                     }
                 }
             }

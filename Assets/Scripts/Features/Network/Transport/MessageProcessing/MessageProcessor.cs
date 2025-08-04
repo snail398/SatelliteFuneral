@@ -25,7 +25,7 @@ namespace Network.Transport
                 }, _ => _);
         }
 
-        public void ProcessMessage(object message)
+        public void ProcessMessage(object message, ulong steamId)
         {
             var messageType = message.GetType();
             if (!_MessagesHandlersMap.TryGetValue(messageType, out var handlerType)) {
@@ -39,7 +39,7 @@ namespace Network.Transport
                 handler = (MessageHandlerWrapper)provider.GetObject(_Container, handlerType);
                 _HandlersCache.Add(handlerType, handler);
             }
-            handler.MessageObjectReceived(message);
+            handler.MessageObjectReceived(message, steamId);
         }
         
         private static bool IsAssignableFromGenericDefinition(Type type, Type genericDefinition, out Type baseAssignable) {

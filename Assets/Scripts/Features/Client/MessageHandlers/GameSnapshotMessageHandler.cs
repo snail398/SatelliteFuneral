@@ -11,7 +11,7 @@ namespace Client.MessageHandlers
             _SynchronizationService = synchronizationService;
         }
 
-        protected override void MessageReceived(GameSnapshotMessage message)
+        protected override void MessageReceived(GameSnapshotMessage message, ulong steamId)
         {
             _SynchronizationService.ReceiveSnapshot(message.GameSnapshot);
         }

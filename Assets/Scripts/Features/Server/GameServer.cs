@@ -5,17 +5,21 @@ using Client;
 using DependencyInjection;
 using Network.Lobby;
 using Network.Transport;
+using Server.Input;
 using Server.Position;
 using Shared;
 using Steamworks;
 using UnityEngine;
 using Utils;
+using InputService = Server.Input.InputService;
 using SpawnService = Server.Spawn.SpawnService;
 
 namespace Server
 {
     public class GameServer
     {
+        private const int ServerTickRateMs = 50;
+        
         private readonly GameLobbyServer _GameLobbyServer;
         private readonly ITimerProvider _TimerProvider;
         private readonly LocalGameServerProvider _LocalGameServerProvider;
@@ -26,18 +30,27 @@ namespace Server
         private SignalBus _SignalBus;
         private MessageProcessor _MessageProcessor;
         private MessageDataSerializer _MessageDataSerializer;
+        private UnityEventProvider _UnityEventProvider;
         private object _UpdateTimer;
+        private uint _ServerTick;
+        private uint _CurrentTimestamp;
+        
+        public uint CurrentTimestamp => _CurrentTimestamp;
+        
+        private SynchronizationService _SynchronizationService;
+        private InputService _InputService;
 
         public List<SteamNetworkingIdentity> ConnectedUsers => _ConnectedUsers;
         public SteamNetworkingIdentity Host => _Host;
         protected Callback<SteamNetworkingMessagesSessionRequest_t> _SessionRequest;
 
-        public GameServer(GameLobbyServer gameLobbyServer, ITimerProvider timerProvider, LocalGameServerProvider localGameServerProvider)
+        public GameServer(GameLobbyServer gameLobbyServer, ITimerProvider timerProvider, LocalGameServerProvider localGameServerProvider, UnityEventProvider unityEventProvider)
         {
             //TODO its not nessessary to have game lobby server neer GameServer
             _GameLobbyServer = gameLobbyServer;
             _TimerProvider = timerProvider;
             _LocalGameServerProvider = localGameServerProvider;
+            _UnityEventProvider = unityEventProvider;
             foreach (var userInLobby in  _GameLobbyServer.UsersInLobby)
             {
                 Debug.Log($"GAMESERVER::user already in lobby: {userInLobby}");
@@ -48,8 +61,8 @@ namespace Server
             
             _GameLobbyServer.OnUserJoin += OnUserJoin;
             _GameLobbyServer.OnUserLeft += OnUserLeft;
-            
-            
+
+            _LocalGameServerProvider.SetGameServer(this);
             _Container = new Container();
             _Container.RegisterInstance(_Container);
             _Container.RegisterInstance(this);
@@ -62,9 +75,26 @@ namespace Server
             _Container.RegisterSingleton<MessageBroadcaster>().Resolve();
             _Container.RegisterInstance(_TimerProvider, typeof(ITimerProvider));
             
-            _UpdateTimer = _TimerProvider.CreateTimer(ListenForMessages, 50, 50);
+            _UnityEventProvider.OnFixedUpdate += UpdateServer;
+            _UnityEventProvider.OnUpdate += UpdateInternal;
 
             _SessionRequest = Callback<SteamNetworkingMessagesSessionRequest_t>.Create(OnSessionRequest);
+        }
+
+        private void UpdateInternal()
+        {
+            _CurrentTimestamp += (uint)(Time.deltaTime * 1000);
+        }
+
+        private void UpdateServer()
+        {
+            ListenForMessages();
+            _InputService.ProcessInput();
+            // ProcessInputs();
+            // SimulatePhysics(fixedDeltaTime);
+            _SynchronizationService.BroadcastSnapshots(_ServerTick);
+            _ServerTick++;
+            _CurrentTimestamp = _ServerTick * ServerTickRateMs;
         }
 
         private void OnSessionRequest(SteamNetworkingMessagesSessionRequest_t param)
@@ -99,7 +129,7 @@ namespace Server
                 Marshal.Copy(msg.m_pData, buffer, 0, buffer.Length);
                 var messageContainer = ProtobufHelper.Deserialize<GameMessageContainer>(buffer);
                 var message = _MessageDataSerializer.Deserialize(messageContainer.MessageData, messageContainer.MessageId);
-                _MessageProcessor.ProcessMessage(message);
+                _MessageProcessor.ProcessMessage(message, msg.m_identityPeer.GetSteamID().m_SteamID);
                 // Освободи память
                 SteamNetworkingMessage_t.Release(messagePtrs[i]);
             }
@@ -111,10 +141,11 @@ namespace Server
             _Host.SetSteamID(host);
             CreateAndRegisterServices();
         }
-
+        
         private void CreateAndRegisterServices()
         {
-            _Container.RegisterSingleton<SynchronizationService>().Resolve();
+            _InputService = _Container.RegisterSingleton<InputService>().Resolve<InputService>();
+            _SynchronizationService = _Container.RegisterSingleton<SynchronizationService>().Resolve<SynchronizationService>();
             _Container.RegisterSingleton<SpawnService>().RegisterInstanceInterfaces();
             _Container.RegisterSingleton<PositionService>().RegisterInstanceInterfaces();
             //TODO: add here gameplay server features
@@ -146,7 +177,7 @@ namespace Server
 
         public void ReceiveMessage<T>(T messageData)
         {
-            _MessageProcessor.ProcessMessage(messageData);
+            _MessageProcessor.ProcessMessage(messageData, _Host.GetSteamID().m_SteamID);
         }
     }
 }

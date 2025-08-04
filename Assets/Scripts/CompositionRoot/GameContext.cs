@@ -40,7 +40,7 @@ namespace CompositionRoot
             CompositionRoot.Container.RegisterSingleton<MessageDataSerializer>().Resolve();
             if (_GameHostingType == GameHostingType.Host)
             {
-                CompositionRoot.Container.RegisterSingleton<LocalGameServerProvider>().ResolveAndLoad();
+                CompositionRoot.Container.RegisterSingleton<IServerProvider, LocalGameServerProvider>().ResolveAndLoad();
                 CompositionRoot.Container.RegisterSingleton<GameServer>().ResolveAndLoad();
                 CompositionRoot.Container.RegisterSingleton<IMessageSender, LocalMessageSender>().ResolveAndLoad();
                 
@@ -51,7 +51,7 @@ namespace CompositionRoot
             }
             else
             {
-                CompositionRoot.Container.RegisterSingleton<RemoteGameServerProvider>().ResolveAndLoad();
+                CompositionRoot.Container.RegisterSingleton<IServerProvider, RemoteGameServerProvider>().ResolveAndLoad();
                 CompositionRoot.Container.RegisterSingleton<IMessageSender, RemoteMessageSender>().ResolveAndLoad();
             }
             

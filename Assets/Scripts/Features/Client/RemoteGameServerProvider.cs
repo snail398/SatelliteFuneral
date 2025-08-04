@@ -9,18 +9,37 @@ using Utils;
 
 namespace Client
 {
-    public class RemoteGameServerProvider : ILoadableService, IUnloadableService
+    public class RemoteGameServerProvider : ILoadableService, IUnloadableService, IServerProvider
     {
         private ITimerProvider _TimerProvider;
         private MessageDataSerializer _MessageDataSerializer;
         private MessageProcessor _MessageProcessor;
+        private UnityEventProvider _UnityEventProvider;
         private object _UpdateTimer;
+        
+        private uint _ServerTick;
+        private uint _CurrentTimestamp;
+        
+        public uint CurrentTimestamp => _CurrentTimestamp;
+        
+        public void SetCurrentTick(uint serverTick)
+        {
+            _CurrentTimestamp = _ServerTick * 50;
+            _ServerTick = serverTick;
+        }
 
-        public RemoteGameServerProvider(ITimerProvider timerProvider, MessageDataSerializer messageDataSerializer, MessageProcessor messageProcessor)
+        public RemoteGameServerProvider(ITimerProvider timerProvider, MessageDataSerializer messageDataSerializer, MessageProcessor messageProcessor, UnityEventProvider unityEventProvider)
         {
             _TimerProvider = timerProvider;
             _MessageDataSerializer = messageDataSerializer;
             _MessageProcessor = messageProcessor;
+            _UnityEventProvider = unityEventProvider;
+            _UnityEventProvider.OnUpdate += UpdateInternal;
+        }
+
+        private void UpdateInternal()
+        {
+            _CurrentTimestamp += (uint)(Time.deltaTime * 1000);
         }
 
         public void Load()
@@ -54,7 +73,7 @@ namespace Client
                 Marshal.Copy(msg.m_pData, buffer, 0, buffer.Length);
                 var messageContainer = ProtobufHelper.Deserialize<GameMessageContainer>(buffer);
                 var message = _MessageDataSerializer.Deserialize(messageContainer.MessageData, messageContainer.MessageId);
-                _MessageProcessor.ProcessMessage(message);
+                _MessageProcessor.ProcessMessage(message, msg.m_identityPeer.GetSteamID().m_SteamID);
                 // Освободи память
                 SteamNetworkingMessage_t.Release(messagePtrs[i]);
             }

@@ -1,10 +1,14 @@
 ﻿using Network.Transport;
+using Server;
 
 namespace Client
 {
-    public class LocalGameServerProvider
+    public class LocalGameServerProvider : IServerProvider
     {
         private readonly MessageProcessor _MessageProcessor;
+        private GameServer _GameServer;
+        public uint CurrentTimestamp => _GameServer.CurrentTimestamp;
+        public void SetCurrentTick(uint serverTick) { }
 
         public LocalGameServerProvider(MessageProcessor messageProcessor)
         {
@@ -13,7 +17,13 @@ namespace Client
 
         public void ReceiveMessage(object message)
         {
-            _MessageProcessor.ProcessMessage(message);
+            _MessageProcessor.ProcessMessage(message, _GameServer.Host.GetSteamID().m_SteamID);
         }
+
+        public void SetGameServer(GameServer gameServer)
+        {
+            _GameServer = gameServer;
+        }
+
     }
 }

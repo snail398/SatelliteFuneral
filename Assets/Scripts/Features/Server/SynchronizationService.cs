@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using DependencyInjection;
 using Network.Transport;
+using Server.Input;
 using Shared;
 using Steamworks;
 using UnityEngine;
@@ -19,6 +20,7 @@ namespace Server
         private readonly Container _Container; 
         private readonly GameServer _GameServer; 
         private readonly MessageBroadcaster _MessageBroadcaster; 
+        private readonly InputService _InputService; 
         
         private readonly Dictionary<ulong, int?> _LastReceivedPlayerSnapshot = new Dictionary<ulong, int?>();
         private readonly Dictionary<int, GameSnapshot> _Snapshots = new Dictionary<int, GameSnapshot>();
@@ -35,27 +37,28 @@ namespace Server
         private static readonly FuncCacheProvider<FieldInfo, Action<object, object>> _FieldSetterCacheProvider = new FuncCacheProvider<FieldInfo, Action<object, object>>(fieldInfo => (instance, argument) => fieldInfo.SetValue(instance, argument));
 
         
-        public SynchronizationService(ITimerProvider timerProvider, Container container, GameServer gameServer, MessageBroadcaster messageBroadcaster)
+        public SynchronizationService(ITimerProvider timerProvider, Container container, GameServer gameServer, MessageBroadcaster messageBroadcaster, InputService inputService)
         {
             _TimerProvider = timerProvider;
             _Container = container;
             _GameServer = gameServer;
             _MessageBroadcaster = messageBroadcaster;
-            _UpdateTimer = _TimerProvider.CreateTimer(IterateSnapshots, 50, 50);
-
+            _InputService = inputService;
         }
 
-        private void IterateSnapshots()
+        public void BroadcastSnapshots(uint serverTick)
         {
             Debug.Log("Iterating snapshots");
-            
-            SaveCurrentStateToSnapshot();
+            SaveCurrentStateToSnapshot(serverTick);
             SendCurrentSnapshotToPlayers();
         }
 
-        private void SaveCurrentStateToSnapshot()
+        private void SaveCurrentStateToSnapshot(uint serverTick)
         {
-            var snapshot = new GameSnapshot();
+            var snapshot = new GameSnapshot()
+            {
+                ServerTick = serverTick,
+            };
             
             _FieldsCacheProvider.Get(typeof(GameSnapshot)).ForEach(_ => {
                 var providerType = typeof(ISnapshotDataProvider<>).MakeGenericType(_.FieldType);
@@ -87,6 +90,7 @@ namespace Server
                 GameSnapshot diff;
                 if (!lastReceivedSnapshotId.HasValue || !_Snapshots.ContainsKey(lastReceivedSnapshotId.Value)) {
                     diff = _Snapshots[_CurrentSnapshotId];
+                    diff.LastHandledInput = _InputService.GetLastHandledInput(player);
                 }
                 else
                 {

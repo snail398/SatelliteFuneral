@@ -13,7 +13,7 @@ namespace Server.MessageHandlers
             _PositionService = positionService;
         }
         
-        protected override void MessageReceived(PositionMessage message)
+        protected override void MessageReceived(PositionMessage message, ulong steamId)
         {
             _PositionService.SetPosition(message.SteamId, new Vector3(message.X, message.Y, message.Z));
         }
