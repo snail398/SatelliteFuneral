@@ -92,7 +92,7 @@ public class TestPlayerController : MonoBehaviour
             uint targetTimestamp = end.Item2 * 50;
 
             float frac = (float)(simulationTimestamp - previousTimestamp) / (float)(targetTimestamp - previousTimestamp);
-            transform.position = math.lerp(_PreviousTargetPosition, _TargetPosition, math.saturate(frac));
+            transform.position = math.lerp(start.Item1, end.Item1, math.saturate(frac));
         }
     }
 }
