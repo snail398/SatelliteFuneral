@@ -63,7 +63,8 @@ namespace CompositionRoot
             }
             
             CompositionRoot.Container.RegisterSingleton<SynchronizationService>().Resolve();
-            CompositionRoot.Container.RegisterSingleton<SpawnService>().ResolveAndLoad();
+            CompositionRoot.Container.RegisterSingleton<UnitService>().RegisterInstanceInterfaces();
+            CompositionRoot.Container.RegisterSingleton<SpawnService>().RegisterInstanceInterfaces();
             
             Debug.LogError("After Load context");
         }

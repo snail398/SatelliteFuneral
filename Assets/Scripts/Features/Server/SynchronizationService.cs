@@ -48,7 +48,6 @@ namespace Server
 
         public void BroadcastSnapshots(long serverTimestamp)
         {
-            Debug.Log("Iterating snapshots");
             SaveCurrentStateToSnapshot();
             SendCurrentSnapshotToPlayers(serverTimestamp);
         }

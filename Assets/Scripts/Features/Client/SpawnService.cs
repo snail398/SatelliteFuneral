@@ -1,24 +1,28 @@
-﻿using DependencyInjection;
+﻿using System.Collections.Generic;
+using DependencyInjection;
 using Network.Transport;
+using Shared;
 using Steamworks;
 using UnityEngine;
 using Utils;
 
 namespace Client
 {
-    public class SpawnService : ILoadableService, IUnloadableService
+    public class SpawnService : IUnloadableService, ISnapshotDataUpdateReceiver<List<SpawnSnapshot>>
     {
         private readonly UnityEventProvider _UnityEventProvider;
         private readonly IMessageSender _MessageSender;
-
-        public SpawnService(UnityEventProvider unityEventProvider, IMessageSender messageSender)
+        private readonly IServerProvider _ServerProvider;
+        private readonly UnitService _UnitService;
+        
+        private HashSet<ulong> _SpawnedUnits = new HashSet<ulong>();
+        
+        public SpawnService(UnityEventProvider unityEventProvider, IMessageSender messageSender, IServerProvider serverProvider, UnitService unitService)
         {
             _UnityEventProvider = unityEventProvider;
             _MessageSender = messageSender;
-        }
-
-        void ILoadableService.Load()
-        {
+            _ServerProvider = serverProvider;
+            _UnitService = unitService;
             _UnityEventProvider.OnUpdate += Update;
         }
 
@@ -33,9 +37,26 @@ namespace Client
             }
         }
 
+        public void ReceiveSnapshotDataUpdate(List<SpawnSnapshot> data, long timestamp)
+        {
+            if (data != null)
+            {
+                foreach (var spawnSnapshot in data)
+                {
+
+                    if (spawnSnapshot.Spawned && !_SpawnedUnits.Contains(spawnSnapshot.SteamId))
+                    {
+                        _SpawnedUnits.Add(spawnSnapshot.SteamId);
+                        _UnitService.SpawnUnit(spawnSnapshot.SteamId);
+                    }
+                }
+            }
+        }
+
         void IUnloadableService.Unload()
         {
             _UnityEventProvider.OnUpdate -= Update;
         }
+
     }
 }

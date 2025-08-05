@@ -1,8 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using DependencyInjection;
+using Server;
 using Shared;
 using Steamworks;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Client
 {
@@ -10,51 +14,45 @@ namespace Client
     {
         private readonly IMessageSender _MessageSender;
         private readonly IServerProvider _ServerProvider;
+        private readonly Container _Container;
         
+        private Dictionary<Type, object> _ReceiversCache = new Dictionary<Type, object>();
+        private FuncCacheProvider<Type, MethodInfo> _ReceiverMethodsCache;
+        private FuncCacheProvider<Type, Type> _ReceiverTypesCache;
+        private object[] _ParamsBuffer = new object[2];
 
-        private Dictionary<ulong, TestPlayerController> _SpawnedClients = new Dictionary<ulong, TestPlayerController>();
-
-        public SynchronizationService(IMessageSender messageSender, IServerProvider serverProvider)
+        public SynchronizationService(IMessageSender messageSender, IServerProvider serverProvider, Container container)
         {
             _MessageSender = messageSender;
             _ServerProvider = serverProvider;
+            _Container = container;
+            
+            _ReceiverTypesCache = new FuncCacheProvider<Type, Type>(_ => typeof(ISnapshotDataUpdateReceiver<>).MakeGenericType(_));
+            _ReceiverMethodsCache = new FuncCacheProvider<Type, MethodInfo>(_ =>
+                _.GetMethod("ReceiveSnapshotDataUpdate", BindingFlags.Public | BindingFlags.Instance));
         }
         
         void ILoadableService.Load() { }
 
         public void ReceiveSnapshot(GameSnapshot snapshot, long serverTimestamp)
         {
-            Debug.Log($"receive snapshot");
             //TODO: send message about receiving ??
             if (snapshot == null)
                 return;
 
             _ServerProvider.SetCurrentTick(serverTimestamp);
-            if (snapshot.SpawnSnapshots != null)
-            {
-                foreach (var spawnSnapshot in snapshot.SpawnSnapshots)
-                {
-                    if (spawnSnapshot.Spawned && !_SpawnedClients.ContainsKey(spawnSnapshot.SteamId))
-                    {
-                        var player = Resources.Load<TestPlayerController>("Player");
-                        var inst = Object.Instantiate(player);
-                        var isLocal = spawnSnapshot.SteamId == SteamUser.GetSteamID().m_SteamID;
-                        inst.gameObject.name = $"Player::STEAMID::{spawnSnapshot.SteamId}::{(isLocal ? "Local" : "Remote")}";
-                        inst.Setup(_MessageSender, isLocal, _ServerProvider);
-                        _SpawnedClients.Add(spawnSnapshot.SteamId, inst);
-                    }
+            foreach (var snapshotField in typeof(GameSnapshot).GetFields()) {
+                var receiverType = _ReceiverTypesCache.Get(snapshotField.FieldType);
+                if (!_ReceiversCache.TryGetValue(receiverType, out var receiver)) {
+                    receiver = _Container.Resolve(receiverType);
+                    if (receiver != null)
+                        _ReceiversCache.Add(receiverType, receiver);
                 }
-            }
-
-            if (snapshot.PositionSnapshots != null)
-            {
-                foreach (var positionSnapshot in snapshot.PositionSnapshots)
-                {
-                    if (positionSnapshot.SteamId != SteamUser.GetSteamID().m_SteamID)
-                    {
-                        _SpawnedClients[positionSnapshot.SteamId].SetPosition(new Vector3(positionSnapshot.X, positionSnapshot.Y, positionSnapshot.Z), serverTimestamp);
-                    }
-                }
+                if (receiver == null)
+                    continue;
+                var updateMethod = _ReceiverMethodsCache.Get(receiverType);
+                _ParamsBuffer[0] = snapshotField.GetValue(snapshot);
+                updateMethod.Invoke(receiver, _ParamsBuffer);
             }
         }
 

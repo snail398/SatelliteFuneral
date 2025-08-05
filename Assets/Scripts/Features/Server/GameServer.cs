@@ -88,7 +88,6 @@ namespace Server
         private void UpdateInternal()
         {
             _CurrentTimestamp = _Stopwatch.ElapsedMilliseconds;
-            Debug.LogError($"GAMESERVER::UpdateInternal {_CurrentTimestamp}");
         }
 
         private void UpdateServer()
@@ -116,14 +115,12 @@ namespace Server
             IntPtr[] messagePtrs = new IntPtr[maxMessages];
 
             int receivedCount = SteamNetworkingMessages.ReceiveMessagesOnChannel(channel, messagePtrs, maxMessages);
-            Debug.Log($"server received {receivedCount} messages");
             for (int i = 0; i < receivedCount; i++)
             {
                 if (messagePtrs[i] == IntPtr.Zero)
                     continue;
 
                 SteamNetworkingMessage_t msg = Marshal.PtrToStructure<SteamNetworkingMessage_t>(messagePtrs[i]);
-                Debug.Log($"server received message from: {msg.m_identityPeer.GetSteamID().ToString()}");
 
                 if (msg.m_identityPeer.Equals(_Host))
                 {
