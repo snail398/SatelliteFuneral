@@ -51,7 +51,7 @@ namespace Client
                 if (receiver == null)
                     continue;
                 var updateMethod = _ReceiverMethodsCache.Get(receiverType);
-                _ParamsBuffer[0] = snapshotField.GetValue(snapshot);
+                _ParamsBuffer[0] = serverTimestamp;
                 updateMethod.Invoke(receiver, _ParamsBuffer);
             }
         }
