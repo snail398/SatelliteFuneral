@@ -18,7 +18,8 @@ namespace Client
         private bool _IsLocal;
         public float moveSpeed = 5f;
         
-        private List<(Vector3, long)> _PositionQueue = new List<(Vector3, long)>();
+        private List<(float3, long)> _PositionQueue = new List<(float3, long)>();
+        private List<(quaternion, long)> _RotationQueue = new List<(quaternion, long)>();
         
         public UnitController(ulong steamId, UnitView view, IMessageSender messageSender, IServerProvider serverProvider, UnityEventProvider unityEventProvider)
         {
@@ -35,9 +36,10 @@ namespace Client
             _UnityEventProvider.OnUpdate += OnUpdate;
         }
         
-        public void SetPosition(Vector3 targetPosition, long serverTimestamp)
+        public void SetPosition(float3 targetPosition, quaternion rotation, long serverTimestamp)
         {
             _PositionQueue.Add((targetPosition, serverTimestamp));
+            _RotationQueue.Add((rotation, serverTimestamp));
         }
         
         private void OnUpdate()
@@ -53,33 +55,75 @@ namespace Client
 
                 // Перемещаем трансформ
                 _View.transform.position += direction * moveSpeed * Time.deltaTime;
+                
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                RaycastHit hit;
+
+                if (Physics.Raycast(ray, out hit))
+                {
+                    var point = hit.point;
+                    point.y = _View.transform.position.y;
+                    hit.point = point;
+                    var targetDirection =(hit.point - _View.transform.position);
+                    _View.transform.rotation = quaternion.LookRotation( math.normalize(targetDirection), Vector3.up);
+                }
+                
             }
             else
             {
-                uint offset = 200;
-                var simulationTimestamp = _ServerProvider.CurrentTimestamp - offset;
-                if (_PositionQueue.Count < 2)
-                    return;
-                var startIndex = 0;
-                var endIndex = 1;
-                for (int i = 0; i < _PositionQueue.Count - 1; i++)
                 {
-                    if (simulationTimestamp > _PositionQueue[i + 1].Item2)
+                    uint offset = 200;
+                    var simulationTimestamp = _ServerProvider.CurrentTimestamp - offset;
+                    if (_PositionQueue.Count < 2)
+                        return;
+                    var startIndex = 0;
+                    var endIndex = 1;
+                    for (int i = 0; i < _PositionQueue.Count - 1; i++)
                     {
-                        _PositionQueue.RemoveAt(i);
-                        i--;
+                        if (simulationTimestamp > _PositionQueue[i + 1].Item2)
+                        {
+                            _PositionQueue.RemoveAt(i);
+                            i--;
+                        }
                     }
-                }
-            
-                if (_PositionQueue.Count < 2)
-                    return;
-                var start = _PositionQueue[startIndex];
-                var end = _PositionQueue[endIndex];
-                long previousTimestamp = start.Item2;
-                long targetTimestamp = end.Item2;
 
-                float frac = (float)(simulationTimestamp - previousTimestamp) / (float)(targetTimestamp - previousTimestamp);
-                _View.transform.position = math.lerp(start.Item1, end.Item1, math.saturate(frac));
+                    if (_PositionQueue.Count < 2)
+                        return;
+                    var start = _PositionQueue[startIndex];
+                    var end = _PositionQueue[endIndex];
+                    long previousTimestamp = start.Item2;
+                    long targetTimestamp = end.Item2;
+
+                    float frac = (float)(simulationTimestamp - previousTimestamp) /
+                                 (float)(targetTimestamp - previousTimestamp);
+                    _View.transform.position = math.lerp(start.Item1, end.Item1, math.saturate(frac));
+                }
+                {
+                    uint offset = 200;
+                    var simulationTimestamp = _ServerProvider.CurrentTimestamp - offset;
+                    if (_RotationQueue.Count < 2)
+                        return;
+                    var startIndex = 0;
+                    var endIndex = 1;
+                    for (int i = 0; i < _RotationQueue.Count - 1; i++)
+                    {
+                        if (simulationTimestamp > _RotationQueue[i + 1].Item2)
+                        {
+                            _RotationQueue.RemoveAt(i);
+                            i--;
+                        }
+                    }
+
+                    if (_RotationQueue.Count < 2)
+                        return;
+                    var start = _RotationQueue[startIndex];
+                    var end = _RotationQueue[endIndex];
+                    long previousTimestamp = start.Item2;
+                    long targetTimestamp = end.Item2;
+
+                    float frac = (float)(simulationTimestamp - previousTimestamp) / (float)(targetTimestamp - previousTimestamp);
+                    _View.transform.rotation = math.slerp(start.Item1, end.Item1, math.saturate(frac));
+                }
             }
         }
 
@@ -89,9 +133,7 @@ namespace Client
             {
                 _MessageSender.SendMessage(new PositionMessage()
                 {
-                    X = _View.transform.position.x,
-                    Y = _View.transform.position.y,
-                    Z = _View.transform.position.z,
+                    Position = _View.transform.position,
                     SteamId = SteamUser.GetSteamID().m_SteamID,
                 });
             }

@@ -46,7 +46,7 @@ namespace Client
                 {
                     if (positionSnapshot.SteamId != SteamUser.GetSteamID().m_SteamID)
                     {
-                        _SpawnedUnits[positionSnapshot.SteamId].SetPosition(new Vector3(positionSnapshot.X, positionSnapshot.Y, positionSnapshot.Z), timestamp);
+                        _SpawnedUnits[positionSnapshot.SteamId].SetPosition(positionSnapshot.Position, positionSnapshot.Rotation, timestamp);
                     }
                 }
             }

@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using Network.Transport;
+﻿using Network.Transport;
 using Server.Position;
 
 namespace Server.MessageHandlers
@@ -15,7 +14,7 @@ namespace Server.MessageHandlers
         
         protected override void MessageReceived(PositionMessage message, ulong steamId)
         {
-            _PositionService.SetPosition(message.SteamId, new Vector3(message.X, message.Y, message.Z));
+            _PositionService.SetPosition(message.SteamId, message.Position, message.Rotation);
         }
     }
 }

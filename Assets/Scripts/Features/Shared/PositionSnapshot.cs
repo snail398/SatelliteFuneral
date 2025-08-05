@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using Unity.Mathematics;
 
 namespace Shared
 {
@@ -8,10 +9,8 @@ namespace Shared
         [ProtoMember(1)]
         public ulong SteamId;
         [ProtoMember(2)]
-        public float X;
+        public float3 Position;
         [ProtoMember(3)]
-        public float Y;
-        [ProtoMember(4)]
-        public float Z;
+        public quaternion Rotation;
     }
 }

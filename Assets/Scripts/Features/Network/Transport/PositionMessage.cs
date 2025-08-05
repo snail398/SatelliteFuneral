@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using Unity.Mathematics;
 
 namespace Network.Transport
 {
@@ -7,12 +8,10 @@ namespace Network.Transport
     public class PositionMessage
     {
         [ProtoMember(1)]
-        public float X;
+        public float3 Position;
         [ProtoMember(2)]
-        public float Y;
+        public quaternion Rotation;
         [ProtoMember(3)]
-        public float Z;
-        [ProtoMember(4)]
         public ulong SteamId;
     }
 }

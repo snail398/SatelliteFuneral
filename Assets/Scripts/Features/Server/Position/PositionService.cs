@@ -1,16 +1,18 @@
 ﻿using System.Collections.Generic;
-using System.Numerics;
 using Shared;
+using Unity.Mathematics;
 
 namespace Server.Position
 {
     public class PositionService : ISnapshotDataProvider<List<PositionSnapshot>>
     {
-        private Dictionary<ulong, Vector3> _Positions = new Dictionary<ulong, Vector3>();
+        private Dictionary<ulong, float3> _Positions = new Dictionary<ulong, float3>();
+        private Dictionary<ulong, quaternion> _Rotations = new Dictionary<ulong, quaternion>();
         
-        public void SetPosition(ulong user, Vector3 position)
+        public void SetPosition(ulong user, float3 position, quaternion rotation)
         {
             _Positions[user] = position;
+            _Rotations[user] = rotation;
         }
 
         List<PositionSnapshot> ISnapshotDataProvider<List<PositionSnapshot>>.SnapshotData
@@ -23,9 +25,8 @@ namespace Server.Position
                     snapshots.Add(new PositionSnapshot()
                     {
                         SteamId = kvp.Key,
-                        X = kvp.Value.X,
-                        Y = kvp.Value.Y,
-                        Z = kvp.Value.Z,
+                        Position = kvp.Value,
+                        Rotation = _Rotations[kvp.Key]
                     });
                 }
 
