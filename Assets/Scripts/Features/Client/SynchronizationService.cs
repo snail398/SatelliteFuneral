@@ -41,6 +41,7 @@ namespace Client
                 return;
 
             _ServerProvider.SetCurrentTick(serverTimestamp);
+            _ParamsBuffer[1] = serverTimestamp;
             foreach (var snapshotField in typeof(GameSnapshot).GetFields()) {
                 var receiverType = _ReceiverTypesCache.Get(snapshotField.FieldType);
                 if (!_ReceiversCache.TryGetValue(receiverType, out var receiver)) {
@@ -51,7 +52,7 @@ namespace Client
                 if (receiver == null)
                     continue;
                 var updateMethod = _ReceiverMethodsCache.Get(receiverType);
-                _ParamsBuffer[0] = serverTimestamp;
+                _ParamsBuffer[0] = snapshotField.GetValue(snapshot);
                 updateMethod.Invoke(receiver, _ParamsBuffer);
             }
         }
