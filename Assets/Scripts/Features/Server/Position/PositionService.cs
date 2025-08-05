@@ -22,11 +22,17 @@ namespace Server.Position
                 var snapshots = new List<PositionSnapshot>(10);
                 foreach (var kvp in _Positions)
                 {
+                    var rot = _Rotations[kvp.Key];
                     snapshots.Add(new PositionSnapshot()
                     {
                         SteamId = kvp.Key,
-                        Position = kvp.Value,
-                        Rotation = _Rotations[kvp.Key]
+                        XPos = kvp.Value.x,
+                        YPos = kvp.Value.y,
+                        ZPos = kvp.Value.z,
+                        XRot = rot.value.x,
+                        YRot = rot.value.y,
+                        ZRot = rot.value.z,
+                        WRot = rot.value.w,
                     });
                 }
 

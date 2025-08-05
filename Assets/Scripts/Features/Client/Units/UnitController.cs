@@ -133,8 +133,14 @@ namespace Client
             {
                 _MessageSender.SendMessage(new PositionMessage()
                 {
-                    Position = _View.transform.position,
                     SteamId = SteamUser.GetSteamID().m_SteamID,
+                    XPos = _View.transform.position.x,
+                    YPos = _View.transform.position.y,
+                    ZPos = _View.transform.position.z,
+                    XRot = _View.transform.rotation.x,
+                    YRot = _View.transform.rotation.y,
+                    ZRot = _View.transform.rotation.z,
+                    WRot = _View.transform.rotation.w,
                 });
             }
         }

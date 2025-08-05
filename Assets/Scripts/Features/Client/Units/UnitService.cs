@@ -2,6 +2,7 @@
 using DependencyInjection;
 using Shared;
 using Steamworks;
+using Unity.Mathematics;
 using UnityEngine;
 using Utils;
 
@@ -46,7 +47,7 @@ namespace Client
                 {
                     if (positionSnapshot.SteamId != SteamUser.GetSteamID().m_SteamID)
                     {
-                        _SpawnedUnits[positionSnapshot.SteamId].SetPosition(positionSnapshot.Position, positionSnapshot.Rotation, timestamp);
+                        _SpawnedUnits[positionSnapshot.SteamId].SetPosition( new float3(positionSnapshot.XPos, positionSnapshot.YPos, positionSnapshot.ZPos), new quaternion(positionSnapshot.XRot, positionSnapshot.YRot, positionSnapshot.ZRot, positionSnapshot.WRot), timestamp);
                     }
                 }
             }
