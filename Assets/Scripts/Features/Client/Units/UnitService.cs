@@ -26,7 +26,7 @@ namespace Client
         public void SpawnUnit(ulong steamId)
         {
             var player = Resources.Load<UnitView>("Player");
-            var inst = Object.Instantiate(player);
+            var inst = Object.Instantiate(player, new Vector3(0, 0, 0), Quaternion.identity);
             UnitController unitController = new UnitController(steamId, inst, _MessageSender , _ServerProvider, _UnityEventProvider);
             _SpawnedUnits.Add(steamId, unitController);
         }

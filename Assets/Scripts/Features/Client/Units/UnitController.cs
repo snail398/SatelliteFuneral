@@ -17,6 +17,10 @@ namespace Client
         private UnityEventProvider _UnityEventProvider;
         private bool _IsLocal;
         public float moveSpeed = 5f;
+        public float mouseSensitivity = 2f;
+
+        private Transform cam;
+        private float cameraPitch = 0f;
         
         private List<(float3, long)> _PositionQueue = new List<(float3, long)>();
         private List<(quaternion, long)> _RotationQueue = new List<(quaternion, long)>();
@@ -31,7 +35,7 @@ namespace Client
             
             _IsLocal = steamId == SteamUser.GetSteamID().m_SteamID;
             view.gameObject.name = $"Player::STEAMID::{steamId}::{(_IsLocal ? "Local" : "Remote")}";
-
+            view.ChangeView(_IsLocal);
             _UnityEventProvider.OnFixedUpdate += OnFixedUpdate;
             _UnityEventProvider.OnUpdate += OnUpdate;
         }
@@ -51,22 +55,31 @@ namespace Client
                 float vertical = Input.GetAxisRaw("Vertical");     // W/S, ↑/↓
 
                 // Создаем вектор движения (только по X и Z)
-                Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
+                Vector3 move = _View.transform.right * horizontal + _View.transform.forward * vertical;
 
                 // Перемещаем трансформ
-                _View.transform.position += direction * moveSpeed * Time.deltaTime;
+                _View.transform.position += move * moveSpeed * Time.deltaTime;
                 
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                RaycastHit hit;
+                float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
+                float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
 
-                if (Physics.Raycast(ray, out hit))
-                {
-                    var point = hit.point;
-                    point.y = _View.transform.position.y;
-                    hit.point = point;
-                    var targetDirection =(hit.point - _View.transform.position);
-                    _View.transform.rotation = quaternion.LookRotation( math.normalize(targetDirection), Vector3.up);
-                }
+                _View.transform.Rotate(Vector3.up * mouseX);
+
+                cameraPitch -= mouseY;
+                cameraPitch = Mathf.Clamp(cameraPitch, -90f, 90f);
+                _View.FirstPersonView.localEulerAngles = Vector3.right * cameraPitch;
+                
+                // Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                // RaycastHit hit;
+                //
+                // if (Physics.Raycast(ray, out hit))
+                // {
+                //     var point = hit.point;
+                //     point.y = _View.transform.position.y;
+                //     hit.point = point;
+                //     var targetDirection =(hit.point - _View.transform.position);
+                //     _View.transform.rotation = quaternion.LookRotation( math.normalize(targetDirection), Vector3.up);
+                // }
                 
             }
             else
