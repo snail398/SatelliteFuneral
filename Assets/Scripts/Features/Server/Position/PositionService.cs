@@ -26,18 +26,18 @@ namespace Server.Position
                     snapshots.Add(new PositionSnapshot()
                     {
                         SteamId = kvp.Key,
-                        XPos = kvp.Value.x,
-                        YPos = kvp.Value.y,
-                        ZPos = kvp.Value.z,
-                        XRot = rot.value.x,
-                        YRot = rot.value.y,
-                        ZRot = rot.value.z,
-                        WRot = rot.value.w,
+                        Position = kvp.Value,
+                        Rotation = rot,
                     });
                 }
 
                 return snapshots;
             }
+        }
+
+        public float3 GetPosition(ulong unitId)
+        {
+            return _Positions.GetValueOrDefault(unitId);
         }
     }
 }

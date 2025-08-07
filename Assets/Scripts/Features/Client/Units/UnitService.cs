@@ -47,10 +47,15 @@ namespace Client
                 {
                     if (positionSnapshot.SteamId != SteamUser.GetSteamID().m_SteamID)
                     {
-                        _SpawnedUnits[positionSnapshot.SteamId].SetPosition( new float3(positionSnapshot.XPos, positionSnapshot.YPos, positionSnapshot.ZPos), new quaternion(positionSnapshot.XRot, positionSnapshot.YRot, positionSnapshot.ZRot, positionSnapshot.WRot), timestamp);
+                        _SpawnedUnits[positionSnapshot.SteamId].SetPosition( new float3(positionSnapshot.Position.X, positionSnapshot.Position.Y, positionSnapshot.Position.Z), new quaternion(positionSnapshot.Rotation.X, positionSnapshot.Rotation.Y, positionSnapshot.Rotation.Z, positionSnapshot.Rotation.W), timestamp);
                     }
                 }
             }
+        }
+
+        public UnitController GetUnit(ulong unitId)
+        {
+            return _SpawnedUnits.GetValueOrDefault(unitId);
         }
     }
 }

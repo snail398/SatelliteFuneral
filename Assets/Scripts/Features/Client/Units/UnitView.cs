@@ -6,8 +6,11 @@ public class UnitView : MonoBehaviour
     private GameObject _ThirtPersonView;
     [SerializeField] 
     private GameObject _FirstPersonView;
+    [SerializeField] 
+    private Transform _PossessionPoint;
 
     public Transform FirstPersonView => _FirstPersonView.transform;
+    public Transform PossessionPoint => _PossessionPoint.transform;
 
 
     public void ChangeView(bool isFirstPerson)

@@ -43,7 +43,9 @@ namespace Network.Transport
                     {
                         fixed (byte* ptr = data)
                         {
-                            SteamNetworkingMessages.SendMessageToUser(ref receiver, (IntPtr)ptr, (uint)data.Length, 0, 0);
+                            var reliable = false;
+                            var flag = reliable ? Constants.k_nSteamNetworkingSend_Reliable : Constants.k_nSteamNetworkingSend_Unreliable;
+                            SteamNetworkingMessages.SendMessageToUser(ref receiver, (IntPtr)ptr, (uint)data.Length, flag, 0);
                         }
                     }
                 }

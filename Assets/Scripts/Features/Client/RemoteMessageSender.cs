@@ -18,7 +18,7 @@ namespace Client
             _MessageDataSerializer = messageDataSerializer;
         }
 
-        public void SendMessage<T>(T messageData)
+        public void SendMessage<T>(T messageData, bool reliable = false)
         {
             var serializedMessage = _MessageDataSerializer.Serialize(messageData);
             var messageContainer = new GameMessageContainer()
@@ -34,7 +34,8 @@ namespace Client
             {
                 fixed (byte* ptr = data)
                 {
-                    SteamNetworkingMessages.SendMessageToUser(ref receiver, (IntPtr)ptr, (uint)data.Length, 0, 0);
+                    var flag = reliable ? Constants.k_nSteamNetworkingSend_Reliable : Constants.k_nSteamNetworkingSend_Unreliable;
+                    SteamNetworkingMessages.SendMessageToUser(ref receiver, (IntPtr)ptr, (uint)data.Length, flag, 0);
                 }
             }
         }

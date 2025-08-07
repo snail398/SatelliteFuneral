@@ -5,13 +5,13 @@ namespace Network.Transport
 {
     [GameMessage]
     [ProtoContract]
-    public class PositionMessage
+    public class RegisterItemMessage
     {
         [ProtoMember(1)]
-        public ulong SteamId;
-        [ProtoMember(2)]
         public SharedVector3 Position;
-        [ProtoMember(3)]
+        [ProtoMember(2)]
         public SharedVector4 Rotation;
+        [ProtoMember(3)]
+        public string ItemName;
     }
 }

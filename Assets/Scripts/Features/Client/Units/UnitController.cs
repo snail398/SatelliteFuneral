@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Client.Inventory;
 using Network.Transport;
 using Steamworks;
 using Unity.Mathematics;
@@ -147,13 +148,8 @@ namespace Client
                 _MessageSender.SendMessage(new PositionMessage()
                 {
                     SteamId = SteamUser.GetSteamID().m_SteamID,
-                    XPos = _View.transform.position.x,
-                    YPos = _View.transform.position.y,
-                    ZPos = _View.transform.position.z,
-                    XRot = _View.transform.rotation.x,
-                    YRot = _View.transform.rotation.y,
-                    ZRot = _View.transform.rotation.z,
-                    WRot = _View.transform.rotation.w,
+                    Position = _View.transform.position,
+                    Rotation = (quaternion)_View.transform.rotation,
                 });
             }
         }
@@ -163,5 +159,17 @@ namespace Client
             _UnityEventProvider.OnFixedUpdate -= OnFixedUpdate;
             _UnityEventProvider.OnUpdate -= OnUpdate;
         }
+
+        public void TakeItem(ItemView itemView)
+        {
+            itemView.transform.SetParent(_View.PossessionPoint);
+            itemView.transform.localPosition = Vector3.zero;
+        }
+        
+        public void DropItem(ItemView itemView)
+        {
+            itemView.transform.SetParent(null);
+        }
+        
     }
 }

@@ -15,7 +15,7 @@ namespace Server.MessageHandlers
         
         protected override void MessageReceived(PositionMessage message, ulong steamId)
         {
-            _PositionService.SetPosition(message.SteamId, new float3(message.XPos, message.YPos, message.ZPos), new quaternion(message.XRot, message.YRot, message.ZRot, message.WRot));
+            _PositionService.SetPosition(message.SteamId, new float3(message.Position.X, message.Position.Y, message.Position.Z), new quaternion(message.Rotation.X, message.Rotation.Y, message.Rotation.Z, message.Rotation.W));
         }
     }
 }

@@ -160,6 +160,7 @@ namespace Server
             _SynchronizationService = _Container.RegisterSingleton<SynchronizationService>().Resolve<SynchronizationService>();
             _Container.RegisterSingleton<SpawnService>().RegisterInstanceInterfaces();
             _Container.RegisterSingleton<PositionService>().RegisterInstanceInterfaces();
+            _Container.RegisterSingleton<ItemService>().RegisterInstanceInterfaces();
             //TODO: add here gameplay server features
         }
         private void OnUserLeft(CSteamID steamID)

@@ -11,7 +11,7 @@ namespace Client
             _GameServer = gameServer;
         }
 
-        public void SendMessage<T>(T messageData)
+        public void SendMessage<T>(T messageData, bool reliable = false)
         {
             _GameServer.ReceiveMessage(messageData);
         }

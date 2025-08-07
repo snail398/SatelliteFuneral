@@ -33,7 +33,7 @@ namespace Client
                 _MessageSender.SendMessage(new SpawnMessage()
                 {
                     PlayerId = SteamUser.GetSteamID().m_SteamID,
-                });
+                }, true);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Client;
+using Client.Inventory;
 using Network.Lobby;
 using Network.Transport;
 using Shared;
@@ -59,12 +60,13 @@ namespace CompositionRoot
                 messageSender.SendMessage(new WelcomeMessage()
                 {
                     Data = 1,
-                });
+                }, true);
             }
             
             CompositionRoot.Container.RegisterSingleton<SynchronizationService>().Resolve();
             CompositionRoot.Container.RegisterSingleton<UnitService>().RegisterInstanceInterfaces();
             CompositionRoot.Container.RegisterSingleton<SpawnService>().RegisterInstanceInterfaces();
+            CompositionRoot.Container.RegisterSingleton<ItemService>().RegisterInstanceInterfaces();
             
             Debug.LogError("After Load context");
         }
