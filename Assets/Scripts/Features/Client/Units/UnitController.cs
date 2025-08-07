@@ -68,7 +68,7 @@ namespace Client
 
                 cameraPitch -= mouseY;
                 cameraPitch = Mathf.Clamp(cameraPitch, -90f, 90f);
-                _View.FirstPersonView.localEulerAngles = Vector3.right * cameraPitch;
+                _View.CameraGo.localEulerAngles = Vector3.right * cameraPitch;
                 
                 // Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 // RaycastHit hit;
@@ -164,6 +164,7 @@ namespace Client
         {
             itemView.transform.SetParent(_View.PossessionPoint);
             itemView.transform.localPosition = Vector3.zero;
+            itemView.transform.rotation = quaternion.identity;
         }
         
         public void DropItem(ItemView itemView)

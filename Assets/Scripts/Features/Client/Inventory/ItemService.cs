@@ -94,7 +94,7 @@ namespace Client.Inventory
                     {
                         if (_PossessionMap.TryGetValue(itemSnapshot.ItemId, out var possessor))
                         {
-                            var unit = _UnitService.GetUnit(itemSnapshot.Possession);
+                            var unit = _UnitService.GetUnit(possessor);
                             unit?.DropItem(itemView);
                             _PossessionMap.Remove(itemSnapshot.ItemId);
                         }
