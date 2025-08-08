@@ -8,7 +8,9 @@
 #if !(UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX || STEAMWORKS_WIN || STEAMWORKS_LIN_OSX)
 #define DISABLESTEAMWORKS
 #endif
-
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 #if !DISABLESTEAMWORKS
 using System.Collections;
@@ -27,19 +29,14 @@ public class SteamManager : MonoBehaviour {
 	protected static SteamManager s_instance;
 	protected static SteamManager Instance {
 		get {
-			if (s_instance == null) {
-				return new GameObject("SteamManager").AddComponent<SteamManager>();
-			}
-			else {
-				return s_instance;
-			}
+			return s_instance;
 		}
 	}
 
 	protected bool m_bInitialized = false;
 	public static bool Initialized {
 		get {
-			return Instance.m_bInitialized;
+			return Instance?.m_bInitialized ?? false;
 		}
 	}
 
@@ -75,9 +72,6 @@ public class SteamManager : MonoBehaviour {
 			// You should never call Steamworks functions in OnDestroy, always prefer OnDisable if possible.
 			throw new System.Exception("Tried to Initialize the SteamAPI twice in one session!");
 		}
-
-		// We want our SteamManager Instance to persist across scenes.
-		DontDestroyOnLoad(gameObject);
 
 		if (!Packsize.Test()) {
 			Debug.LogError("[Steamworks.NET] Packsize Test returned false, the wrong version of Steamworks.NET is being run in this platform.", this);
@@ -123,6 +117,16 @@ public class SteamManager : MonoBehaviour {
 		}
 
 		s_EverInitialized = true;
+		
+#if UNITY_EDITOR
+		// Подстраховка: когда выходим из Play Mode — вызвать Shutdown
+		EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+		EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+
+		// И на случай domain reload (если отключён Enter Play Mode Options)
+		AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeDomainReload;
+		AssemblyReloadEvents.beforeAssemblyReload += OnBeforeDomainReload;
+#endif
 	}
 
 	// This should only ever get called on first load and after an Assembly reload, You should never Disable the Steamworks Manager yourself.
@@ -175,4 +179,45 @@ public class SteamManager : MonoBehaviour {
 		}
 	}
 #endif // !DISABLESTEAMWORKS
+	
+#if UNITY_EDITOR
+	private static void OnPlayModeStateChanged(PlayModeStateChange state)
+	{
+		// Выходим из Play Mode => аккуратно закрываемся
+		if (state == PlayModeStateChange.ExitingPlayMode)
+		{
+			PerformShutdown("[SteamManager] ExitingPlayMode");
+		}
+	}
+
+	private static void OnBeforeDomainReload()
+	{
+		// Перед перезагрузкой домена (скриптов) — тоже закрываемся
+		PerformShutdown("[SteamManager] BeforeDomainReload");
+	}
+#endif
+	
+	private void OnApplicationQuit()
+	{
+		PerformShutdown("[SteamManager] OnApplicationQuit");
+	}
+	
+	private static void PerformShutdown(string reason)
+	{
+		if (!Initialized) return;
+
+		try
+		{
+			Debug.Log($"{reason}: SteamAPI.Shutdown()");
+			SteamAPI.Shutdown();
+		}
+		catch (System.Exception e)
+		{
+			Debug.LogWarning($"[SteamManager] Shutdown exception: {e}");
+		}
+		finally
+		{
+			s_instance.m_bInitialized = false;
+		}
+	}
 }

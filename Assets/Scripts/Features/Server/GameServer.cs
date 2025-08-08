@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Client;
+using Client.Inventory;
 using DependencyInjection;
+using Features;
 using Network.Lobby;
 using Network.Transport;
 using Server.Input;
@@ -24,6 +26,7 @@ namespace Server
         private readonly GameLobbyServer _GameLobbyServer;
         private readonly ITimerProvider _TimerProvider;
         private readonly LocalGameServerProvider _LocalGameServerProvider;
+        private readonly SpawnItemSettings _SpawnItemSettings;
         
         private Dictionary<ulong, SteamNetworkingIdentity> _ConnectedUsers = new Dictionary<ulong, SteamNetworkingIdentity>();
         private SteamNetworkingIdentity _Host;
@@ -48,13 +51,14 @@ namespace Server
 
         private Stopwatch _Stopwatch; 
         
-        public GameServer(GameLobbyServer gameLobbyServer, ITimerProvider timerProvider, LocalGameServerProvider localGameServerProvider, UnityEventProvider unityEventProvider)
+        public GameServer(GameLobbyServer gameLobbyServer, ITimerProvider timerProvider, LocalGameServerProvider localGameServerProvider, UnityEventProvider unityEventProvider, SpawnItemSettings spawnItemSettings)
         {
             //TODO its not nessessary to have game lobby server neer GameServer
             _GameLobbyServer = gameLobbyServer;
             _TimerProvider = timerProvider;
             _LocalGameServerProvider = localGameServerProvider;
             _UnityEventProvider = unityEventProvider;
+            _SpawnItemSettings = spawnItemSettings;
             foreach (var userInLobby in  _GameLobbyServer.UsersInLobby)
             {
                 Debug.Log($"GAMESERVER::user already in lobby: {userInLobby}");
@@ -71,6 +75,7 @@ namespace Server
             _Container.RegisterInstance(_Container);
             _Container.RegisterInstance(this);
             _Container.RegisterInstance(_LocalGameServerProvider);
+            _Container.RegisterInstance(_SpawnItemSettings);
             _SignalBus = new SignalBus();
             _Container.RegisterInstance(_SignalBus);
             _MessageProcessor = _Container.RegisterSingleton<MessageProcessor>().Resolve<MessageProcessor>();

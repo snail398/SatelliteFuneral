@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using Client.Inventory;
+using Features;
 using Server.Position;
 using Shared;
 using Unity.Mathematics;
@@ -9,6 +11,8 @@ namespace Server
     public class ItemService : ISnapshotDataProvider<List<ItemSnapshot>>
     {
         private readonly PositionService _PositionService;
+        private readonly SpawnItemSettings _SpawnItemSettings;
+        private readonly GameServer _GameServer;
         
         private Dictionary<uint, ItemState> _ItemStates = new Dictionary<uint, ItemState>();
         //item to uint
@@ -39,9 +43,16 @@ namespace Server
             }
         }
         
-        public ItemService(PositionService positionService)
+        public ItemService(PositionService positionService, SpawnItemSettings spawnItemSettings, GameServer gameServer)
         {
             _PositionService = positionService;
+            _SpawnItemSettings = spawnItemSettings;
+            _GameServer = gameServer;
+
+            foreach (var itemSpawner in _SpawnItemSettings._ItemSpawners)
+            {
+                RegisterItem(itemSpawner.ItemName, itemSpawner.transform.position, itemSpawner.transform.rotation, _GameServer.Host.GetSteamID().m_SteamID);
+            }
         }
 
         public void RegisterItem(string itemName, float3 position, quaternion rotation, ulong owner)

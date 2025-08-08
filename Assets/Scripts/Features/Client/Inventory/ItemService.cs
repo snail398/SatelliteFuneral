@@ -11,6 +11,8 @@ namespace Client.Inventory
 {
     public class ItemService : IUnloadableService, ISnapshotDataUpdateReceiver<List<ItemSnapshot>>
     {
+        private const int PICKUP_RANGE = 1;
+        
         private readonly UnityEventProvider _UnityEventProvider;
         private readonly IMessageSender _MessageSender;
         private readonly UnitService _UnitService;
@@ -29,29 +31,40 @@ namespace Client.Inventory
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.I))
+            foreach (var itemKvp in _Items)
             {
-                _MessageSender.SendMessage(new RegisterItemMessage()
-                {
-                    Position = Vector3.zero,
-                    Rotation = Quaternion.identity,
-                    ItemName = "Item",
-                });
+                itemKvp.Value.SetInteractable(false);
             }
-
-            if (Input.GetKeyDown(KeyCode.T))
-            { 
+            {
                 Vector3 screenCenter = new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
                 Ray ray = Camera.main.ScreenPointToRay(screenCenter);
                 RaycastHit hit;
 
-                Debug.DrawRay(ray.origin, ray.direction * 100f, Color.red, 5);
-                
-                if (Physics.Raycast(ray, out hit, 1000, 1 <<LayerMask.NameToLayer("Item")))
+                if (Physics.Raycast(ray, out hit, PICKUP_RANGE, 1 << LayerMask.NameToLayer("Item")))
                 {
-                    if (hit.transform.GetComponentInParent<ItemView>())
+                    if (hit.transform.GetComponent<ItemView>())
                     {
-                        var view = hit.transform.GetComponentInParent<ItemView>();
+                        var view = hit.transform.GetComponent<ItemView>();
+                        if (!_PossessionMap.TryGetValue(view.ItemId, out var possessor))
+                        {
+                            view.SetInteractable(true);
+                        }
+                    }
+                }
+            }
+
+
+            if (Input.GetKeyDown(KeyCode.E))
+            { 
+                Vector3 screenCenter = new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
+                Ray ray = Camera.main.ScreenPointToRay(screenCenter);
+                RaycastHit hit;
+                
+                if (Physics.Raycast(ray, out hit, PICKUP_RANGE, 1 <<LayerMask.NameToLayer("Item")))
+                {
+                    if (hit.transform.GetComponent<ItemView>())
+                    {
+                        var view = hit.transform.GetComponent<ItemView>();
                         _MessageSender.SendMessage( new TakeItemMessage()
                         {
                             ItemId = view.ItemId,
@@ -60,7 +73,7 @@ namespace Client.Inventory
                 }
             }
 
-            if (Input.GetKeyDown(KeyCode.R))
+            if (Input.GetKeyDown(KeyCode.Q))
             {
                 var possessed = _PossessionMap.Any(_ => _.Value == SteamUser.GetSteamID().m_SteamID);
                 if (possessed)
@@ -106,6 +119,7 @@ namespace Client.Inventory
                         {
                             var unit = _UnitService.GetUnit(itemSnapshot.Possession);
                             unit?.TakeItem(itemView);
+                            itemView.SetInteractable(false);
                             _PossessionMap[itemSnapshot.ItemId] = itemSnapshot.Possession;
                         }
                     }

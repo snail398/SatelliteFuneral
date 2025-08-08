@@ -23,18 +23,15 @@ namespace Client
             _MessageSender = messageSender;
             _ServerProvider = serverProvider;
             _UnitService = unitService;
-            _UnityEventProvider.OnUpdate += Update;
+            TrySpawn();
         }
 
-        private void Update()
+        private void TrySpawn()
         {
-            if (Input.GetKeyDown(KeyCode.Space))
+            _MessageSender.SendMessage(new SpawnMessage()
             {
-                _MessageSender.SendMessage(new SpawnMessage()
-                {
-                    PlayerId = SteamUser.GetSteamID().m_SteamID,
-                }, true);
-            }
+                PlayerId = SteamUser.GetSteamID().m_SteamID,
+            }, true);
         }
 
         public void ReceiveSnapshotDataUpdate(List<SpawnSnapshot> data, long timestamp)
@@ -55,7 +52,6 @@ namespace Client
 
         void IUnloadableService.Unload()
         {
-            _UnityEventProvider.OnUpdate -= Update;
         }
 
     }
