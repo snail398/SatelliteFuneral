@@ -22,8 +22,8 @@ namespace Client
         private Transform cam;
         private float cameraPitch = 0f;
         
-        private List<(float3, long)> _PositionQueue = new List<(float3, long)>();
-        private List<(quaternion, long)> _RotationQueue = new List<(quaternion, long)>();
+        private List<(float3 position, long timestamp)> _PositionQueue = new List<(float3, long)>();
+        private List<(quaternion rotation, long timestamp)> _RotationQueue = new List<(quaternion, long)>();
         
         public UnitController(ulong steamId, UnitView view, IMessageSender messageSender, IServerProvider serverProvider, UnityEventProvider unityEventProvider)
         {
@@ -90,7 +90,7 @@ namespace Client
                     var endIndex = 1;
                     for (int i = 0; i < _PositionQueue.Count - 1; i++)
                     {
-                        if (simulationTimestamp > _PositionQueue[i + 1].Item2)
+                        if (simulationTimestamp > _PositionQueue[i + 1].timestamp)
                         {
                             _PositionQueue.RemoveAt(i);
                             i--;
@@ -101,12 +101,12 @@ namespace Client
                         return;
                     var start = _PositionQueue[startIndex];
                     var end = _PositionQueue[endIndex];
-                    long previousTimestamp = start.Item2;
-                    long targetTimestamp = end.Item2;
+                    long previousTimestamp = start.timestamp;
+                    long targetTimestamp = end.timestamp;
 
                     float frac = (float)(simulationTimestamp - previousTimestamp) /
                                  (float)(targetTimestamp - previousTimestamp);
-                    _View.transform.position = math.lerp(start.Item1, end.Item1, math.saturate(frac));
+                    _View.transform.position = math.lerp(start.position, end.position, math.saturate(frac));
                 }
                 {
                     uint offset = 200;
@@ -117,7 +117,7 @@ namespace Client
                     var endIndex = 1;
                     for (int i = 0; i < _RotationQueue.Count - 1; i++)
                     {
-                        if (simulationTimestamp > _RotationQueue[i + 1].Item2)
+                        if (simulationTimestamp > _RotationQueue[i + 1].timestamp)
                         {
                             _RotationQueue.RemoveAt(i);
                             i--;
@@ -128,11 +128,11 @@ namespace Client
                         return;
                     var start = _RotationQueue[startIndex];
                     var end = _RotationQueue[endIndex];
-                    long previousTimestamp = start.Item2;
-                    long targetTimestamp = end.Item2;
+                    long previousTimestamp = start.timestamp;
+                    long targetTimestamp = end.timestamp;
 
                     float frac = (float)(simulationTimestamp - previousTimestamp) / (float)(targetTimestamp - previousTimestamp);
-                    _View.RotationRoot.rotation = math.slerp(start.Item1, end.Item1, math.saturate(frac));
+                    _View.RotationRoot.rotation = math.slerp(start.rotation, end.rotation, math.saturate(frac));
                 }
             }
         }
