@@ -132,7 +132,7 @@ namespace Client
                     long targetTimestamp = end.Item2;
 
                     float frac = (float)(simulationTimestamp - previousTimestamp) / (float)(targetTimestamp - previousTimestamp);
-                    _View.transform.rotation = math.slerp(start.Item1, end.Item1, math.saturate(frac));
+                    _View.RotationRoot.rotation = math.slerp(start.Item1, end.Item1, math.saturate(frac));
                 }
             }
         }
@@ -167,7 +167,7 @@ namespace Client
                 {
                     SteamId = SteamUser.GetSteamID().m_SteamID,
                     Position = _View.transform.position,
-                    Rotation = (quaternion)_View.transform.rotation,
+                    Rotation = (quaternion)_View.RotationRoot.rotation,
                 });
             }
         }
