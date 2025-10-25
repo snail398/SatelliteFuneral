@@ -17,7 +17,6 @@ namespace Client
         private IServerProvider _ServerProvider;
         private UnityEventProvider _UnityEventProvider;
         private bool _IsLocal;
-        public float moveSpeed = 5f;
         public float mouseSensitivity = 2f;
 
         private Transform cam;
@@ -34,6 +33,7 @@ namespace Client
             _ServerProvider = serverProvider;
             _UnityEventProvider = unityEventProvider;
             
+            _View.Rigidbody.freezeRotation = true;
             _IsLocal = steamId == SteamUser.GetSteamID().m_SteamID;
             view.gameObject.name = $"Player::STEAMID::{steamId}::{(_IsLocal ? "Local" : "Remote")}";
             view.ChangeView(_IsLocal);
@@ -47,41 +47,37 @@ namespace Client
             _RotationQueue.Add((rotation, serverTimestamp));
         }
         
+        bool grounded;
+        void Jump()
+        {
+            // убираем накопленный Y чтобы прыжок был консистентный
+            _View.Rigidbody.linearVelocity = new Vector3(_View.Rigidbody.linearVelocity.x, 0f, _View.Rigidbody.linearVelocity.z);
+            _View.Rigidbody.AddForce(Vector3.up * _View.JumpForce, ForceMode.Impulse);
+        }
+        
         private void OnUpdate()
         {
+            if (Input.GetMouseButton(2))
+            {
+                Debug.Break();
+            }
             if (_IsLocal)
             {
-                // Получаем ввод с клавиатуры
-                float horizontal = Input.GetAxisRaw("Horizontal"); // A/D, ←/→
-                float vertical = Input.GetAxisRaw("Vertical");     // W/S, ↑/↓
-
-                // Создаем вектор движения (только по X и Z)
-                Vector3 move = _View.transform.right * horizontal + _View.transform.forward * vertical;
-
-                // Перемещаем трансформ
-                _View.transform.position += move * moveSpeed * Time.deltaTime;
-                
                 float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
                 float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
 
-                _View.transform.Rotate(Vector3.up * mouseX);
+                _View.RotationRoot.Rotate(Vector3.up * mouseX);
 
                 cameraPitch -= mouseY;
                 cameraPitch = Mathf.Clamp(cameraPitch, -90f, 90f);
                 _View.CameraGo.localEulerAngles = Vector3.right * cameraPitch;
                 
-                // Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                // RaycastHit hit;
-                //
-                // if (Physics.Raycast(ray, out hit))
-                // {
-                //     var point = hit.point;
-                //     point.y = _View.transform.position.y;
-                //     hit.point = point;
-                //     var targetDirection =(hit.point - _View.transform.position);
-                //     _View.transform.rotation = quaternion.LookRotation( math.normalize(targetDirection), Vector3.up);
-                // }
-                
+                grounded = Physics.Raycast(_View.transform.position, Vector3.down, 0.1f, LayerMask.GetMask("Ground"));
+
+                if (grounded && Input.GetKeyDown(KeyCode.Space))
+                {
+                    Jump();
+                }
             }
             else
             {
@@ -145,6 +141,28 @@ namespace Client
         {
             if (_IsLocal)
             {
+                
+                float horizontal = Input.GetAxisRaw("Horizontal"); // A/D, ←/→
+                float vertical = Input.GetAxisRaw("Vertical");     // W/S, ↑/↓
+
+                Vector3 moveDirection = _View.RotationRoot.right * horizontal + _View.RotationRoot.forward * vertical;
+                Vector3 targetHorizontalVel = moveDirection * _View.MoveSpeed;
+                Vector3 currentHorizontalVel = new Vector3(_View.Rigidbody.linearVelocity.x, 0f, _View.Rigidbody.linearVelocity.z);
+                Vector3 newHorizontalVel = Vector3.Lerp(
+                    currentHorizontalVel,
+                    targetHorizontalVel,
+                    _View.Acceleration * Time.fixedDeltaTime
+                );
+
+                _View.Rigidbody.linearVelocity = new Vector3(
+                    newHorizontalVel.x,
+                    _View.Rigidbody.linearVelocity.y,
+                    newHorizontalVel.z
+                );
+                
+                
+                
+                
                 _MessageSender.SendMessage(new PositionMessage()
                 {
                     SteamId = SteamUser.GetSteamID().m_SteamID,
