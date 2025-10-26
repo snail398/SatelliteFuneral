@@ -8,13 +8,11 @@ using DependencyInjection;
 using Features;
 using Network.Lobby;
 using Network.Transport;
-using Server.Input;
 using Server.Position;
 using Shared;
 using Steamworks;
 using Utils;
 using Debug = UnityEngine.Debug;
-using InputService = Server.Input.InputService;
 using SpawnService = Server.Spawn.SpawnService;
 
 namespace Server
@@ -42,7 +40,6 @@ namespace Server
         public long CurrentTimestamp => _CurrentTimestamp;
         
         private SynchronizationService _SynchronizationService;
-        private InputService _InputService;
 
         private List<SteamNetworkingIdentity> _PlayerInGame = new List<SteamNetworkingIdentity>();
         public List<SteamNetworkingIdentity> PlayerInGame => _PlayerInGame;
@@ -98,13 +95,9 @@ namespace Server
         private void UpdateServer()
         {
             ListenForMessages();
-            _InputService.ProcessInput();
-            // ProcessInputs();
-            // SimulatePhysics(fixedDeltaTime);
             _SynchronizationService.BroadcastSnapshots(_CurrentTimestamp);
             _ServerTick++;
             // Debug.LogError($"GAMESERVER::UpdateInternal: Current timestamp: {_CurrentTimestamp} server tick : {_ServerTick} calc: {_CurrentTimestamp / 50}");
-            // _CurrentTimestamp = _ServerTick * ServerTickRateMs;
         }
 
         private void OnSessionRequest(SteamNetworkingMessagesSessionRequest_t param)
@@ -161,8 +154,8 @@ namespace Server
         
         private void CreateAndRegisterServices()
         {
-            _InputService = _Container.RegisterSingleton<InputService>().Resolve<InputService>();
             _SynchronizationService = _Container.RegisterSingleton<SynchronizationService>().Resolve<SynchronizationService>();
+            _Container.RegisterSingleton<PingService>().RegisterInstanceInterfaces();
             _Container.RegisterSingleton<SpawnService>().RegisterInstanceInterfaces();
             _Container.RegisterSingleton<PositionService>().RegisterInstanceInterfaces();
             _Container.RegisterSingleton<ItemService>().RegisterInstanceInterfaces();

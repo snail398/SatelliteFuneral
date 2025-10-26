@@ -14,5 +14,7 @@ namespace Shared
         public List<PositionSnapshot> PositionSnapshots;
         [ProtoMember(3)]
         public List<ItemSnapshot> ItemSnapshots;
+        [ProtoMember(4)]
+        public List<PingSnapshot> PingSnapshots;
     }
-}
+} 
