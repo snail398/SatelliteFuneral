@@ -36,6 +36,7 @@ namespace Client
 
         public void ReceiveSnapshot(GameSnapshot snapshot, long serverTimestamp)
         {
+            Debug.LogError("Receive snapshot");
             //TODO: send message about receiving ??
             if (snapshot == null)
                 return;

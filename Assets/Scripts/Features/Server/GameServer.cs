@@ -112,27 +112,30 @@ namespace Server
             int maxMessages = 16;
             IntPtr[] messagePtrs = new IntPtr[maxMessages];
 
-            int receivedCount = SteamNetworkingMessages.ReceiveMessagesOnChannel(channel, messagePtrs, maxMessages);
-            for (int i = 0; i < receivedCount; i++)
+            int receivedCount;
+            while ((receivedCount = SteamNetworkingMessages.ReceiveMessagesOnChannel(channel, messagePtrs, maxMessages)) > 0)
             {
-                if (messagePtrs[i] == IntPtr.Zero)
-                    continue;
-
-                SteamNetworkingMessage_t msg = Marshal.PtrToStructure<SteamNetworkingMessage_t>(messagePtrs[i]);
-
-                if (msg.m_identityPeer.Equals(_Host))
+                for (int i = 0; i < receivedCount; i++)
                 {
-                    Debug.LogWarning("Server received host message via SteamNetworkingMessage");
+                    if (messagePtrs[i] == IntPtr.Zero)
+                        continue;
+
+                    SteamNetworkingMessage_t msg = Marshal.PtrToStructure<SteamNetworkingMessage_t>(messagePtrs[i]);
+
+                    if (msg.m_identityPeer.Equals(_Host))
+                    {
+                        Debug.LogWarning("Server received host message via SteamNetworkingMessage");
+                        SteamNetworkingMessage_t.Release(messagePtrs[i]);
+                        continue;
+                    }
+                    byte[] buffer = new byte[msg.m_cbSize];
+                    Marshal.Copy(msg.m_pData, buffer, 0, buffer.Length);
+                    var messageContainer = ProtobufHelper.Deserialize<GameMessageContainer>(buffer);
+                    var message = _MessageDataSerializer.Deserialize(messageContainer.MessageData, messageContainer.MessageId);
+                    _MessageProcessor.ProcessMessage(message, msg.m_identityPeer.GetSteamID().m_SteamID);
+                    // Освободи память
                     SteamNetworkingMessage_t.Release(messagePtrs[i]);
-                    continue;
                 }
-                byte[] buffer = new byte[msg.m_cbSize];
-                Marshal.Copy(msg.m_pData, buffer, 0, buffer.Length);
-                var messageContainer = ProtobufHelper.Deserialize<GameMessageContainer>(buffer);
-                var message = _MessageDataSerializer.Deserialize(messageContainer.MessageData, messageContainer.MessageId);
-                _MessageProcessor.ProcessMessage(message, msg.m_identityPeer.GetSteamID().m_SteamID);
-                // Освободи память
-                SteamNetworkingMessage_t.Release(messagePtrs[i]);
             }
         }
 

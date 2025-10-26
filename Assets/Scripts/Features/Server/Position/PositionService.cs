@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Shared;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace Server.Position
 {
@@ -11,6 +12,7 @@ namespace Server.Position
         
         public void SetPosition(ulong user, float3 position, quaternion rotation)
         {
+            Debug.DrawRay(position, math.up(), Color.red);
             _Positions[user] = position;
             _Rotations[user] = rotation;
         }
